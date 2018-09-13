@@ -1,0 +1,96 @@
+import { fail } from "assert"
+
+/* global test */
+const validateConfiguration = require("./validate-configuration")
+
+test("Empty configuration shouldn't work", () => {
+    try {
+        validateConfiguration()
+        fail()
+    }
+    catch (e) { /* Works as intended! */ }
+})
+
+test("Non JSON shouldn't work.", () => {
+    try {
+        validateConfiguration(1)
+        fail()
+    }
+    catch (e) { /* Works as intended! */ }
+})
+
+test("Empty JSON shouldn't work.", () => {
+    try {
+        validateConfiguration({})
+        fail()
+    }
+    catch (e) { /* Works as intended! */ }
+})
+
+test("Name must be provided as string value.", () => {
+    try {
+        validateConfiguration({name: 1})
+        fail()
+    }
+    catch (e) { /* Works as intended! */ }
+})
+
+test("Port must be provided as number.", () => {
+    try {
+        validateConfiguration({name: "test", port: "1"})
+        fail()
+    }
+    catch (e) { /* Works as intended! */ }
+})
+
+test("Key location must be provided as a valid hostname.", () => {
+    try {
+        validateConfiguration({name: "test", port: 1, keyLocation: 1})
+        fail()
+    }
+    catch (e) { /* Works as intended! */ }
+})
+
+test("Certificate location must be provided as a string.", () => {
+    try {
+        validateConfiguration({name: "test", port: 1, keyLocation: "1", certLocation: 1})
+        fail()
+    }
+    catch (e) { /* Works as intended! */ }
+})
+
+test("Accepted Topics should be an array.", () => {
+    try {
+        validateConfiguration({name: "test", port: 1, keyLocation: "1", certLocation: "1", acceptedTopics: 1})
+        fail()
+    }
+    catch (e) { /* Works as intended! */ }
+})
+
+test("Database must be provided as a string.", () => {
+    try {
+        validateConfiguration({name: "test", port: 1, keyLocation: "1", certLocation: "1", acceptedTopics: [], databaseUrl: 1})
+        fail()
+    }
+    catch (e) { /* Works as intended! */ }
+})
+
+test("Max document size must be provided as a number.", () => {
+    try {
+        validateConfiguration({name: "test", port: 1, keyLocation: "1", certLocation: "1", acceptedTopics: [], databaseUrl: "1", maxDocumentSizeBytes: "1"})
+        fail()
+    }
+    catch (e) { /* Works as intended! */ }
+})
+
+test("Providing all configuration attributes with the correct types should work.", () => {
+    validateConfiguration({
+        name: "test", 
+        port: 1, 
+        keyLocation: ".....1.1", 
+        certLocation: ".1.1", 
+        acceptedTopics: [{name: "T1", hosts: ["::1"]}], 
+        databaseUrl: "db://a/b/c1", 
+        maxDocumentSizeBytes: 1
+    })
+})

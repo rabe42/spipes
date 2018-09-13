@@ -1,0 +1,40 @@
+{
+  "name": "spipes",
+  "version": "0.0.1",
+  "description": "Provides an infrastructure for this sophisticated message transfer management.",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "debug-test": "node --nolazy --inspect-brk=9229 node_modules/.bin/jest",
+    "lint": "eslint",
+    "clean": "rimraf bin node_modules coverage db/*",
+    "build": "webpack",
+    "doc": "jsdoc -r src -R src/api.md -d dist/docs",
+    "setup-dev": "echo 'Not implemented yet!\n'",
+    "receiver": "PROCESS_TYPE=receiver node index.js",
+    "exporter": "PROCESS_TYPE=exporter node index.js",
+    "test-client": "NODE_TLS_REJECT_UNAUTHORIZED=0 node scripts/http2client.js",
+    "h2get": "NODE_TLS_REJECT_UNAUTHORIZED=0 node scripts/h2get.js /status",
+    "h2post": "NODE_TLS_REJECT_UNAUTHORIZED=0 node scripts/h2post.js /"
+  },
+  "author": "Dr.-Ing. Ralf Berger",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-core": "*",
+    "babel-jest": "^22.4.1",
+    "babel-loader": "^7.1.4",
+    "babel-preset-es2015": "*",
+    "eslint": "^4.18.2",
+    "jest": "^22.4.2",
+    "jsdoc": "^3.5.5",
+    "promise": "^8.0.1",
+    "rimraf": "*",
+    "webpack": "^3.11.0"
+  },
+  "dependencies": {
+    "joi": "^13.4.0",
+    "pouchdb": "^6.4.3",
+    "pouchdb-find": "^6.4.3",
+    "winston": "^3.0.0"
+  }
+}

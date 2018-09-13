@@ -1,0 +1,3 @@
+{
+    "nodeTdd.glob": "{server,worker,scripts,e2e-tests}/**/*.{js,ts,jsx,tsx}",
+}
