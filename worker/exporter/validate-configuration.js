@@ -6,7 +6,8 @@ const configSchema = Joi.object().keys({
     "topic": Joi.string().required(),
     "databaseUrl": Joi.string().required(),
     "limit": Joi.number().integer().min(0).max(65000),
-    "export-dir": Joi.string().required()
+    "export-dir": Joi.string().required(),
+    "error-dir": Joi.string().required()
 })
 
 function validateConfiguration(config) {

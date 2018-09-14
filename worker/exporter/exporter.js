@@ -1,4 +1,3 @@
-/* global setImmediate */
 
 const validateConfiguration = require("./validate-configuration")
 const fs = require("fs")
@@ -47,11 +46,11 @@ class Exporter {
         logger.debug("Exporter.processMessages()")
         db.allDocs()
             .then((result) => {
-                debugger
                 this.exportMessage(result)
             })
             .catch((error) => {
                 logger.error(error)
+                // Move the message to an error folder
             })
     }
 

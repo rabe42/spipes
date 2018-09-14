@@ -5,7 +5,8 @@ const configuration = {
     "topic": "transaction",
     "databaseUrl": "db",
     "limit": 10,
-    "export-dir": "./export"
+    "export-dir": "./export",
+    "error-dir": "./error"
 }
 
 module.exports = configuration
