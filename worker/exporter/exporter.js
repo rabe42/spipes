@@ -42,6 +42,10 @@ class Exporter {
         }, db)
     }
 
+    /**
+     * Process the messages from the database in the sequence of their Ids.
+     * @param {PouchDB} db The database which will provide the messages.
+     */
     processMessages(db) {
         logger.debug("Exporter.processMessages()")
         db.allDocs()
@@ -52,15 +56,6 @@ class Exporter {
                 logger.error(error)
                 // Move the message to an error folder
             })
-    }
-
-    /**
-     * Looks into the database and try to retrieve the limit of documents, which are addressed
-     * to the configured name out of it.
-     */
-    lookupNextMessages() {
-        logger.debug("Exporter.lookupNextMessages()")
-        return []
     }
 
     /**

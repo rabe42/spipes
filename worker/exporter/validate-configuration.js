@@ -14,7 +14,7 @@ function validateConfiguration(config) {
     Joi.validate(config, configSchema, (err) => {
         if (err !== null) {
             logger.error(`exporter.validateConfiguration(): "${err}"`)
-            throw new Error("Error during validation of the configuration: " + err)
+            throw new Error(`Error during validation of the configuration: ${err}`)
         }
     })
 }
