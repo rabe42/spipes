@@ -5,6 +5,7 @@ const configuration = {
     "topic": "transaction",
     "databaseUrl": "db",
     "limit": 10,
+    "interval": 1000,
     "export-dir": "./export",
     "error-dir": "./error"
 }
