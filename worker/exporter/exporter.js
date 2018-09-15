@@ -22,9 +22,6 @@ class Exporter {
         }
         validateConfiguration(config)
         this.config = config
-        if (!this.config.limit) {
-            this.config.limit = 1
-        }
     }
 
     /**
