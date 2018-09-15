@@ -37,7 +37,12 @@ class Exporter {
         const db = new PouchDB(databaseLocation)
 
         // Create the export directory, if it didn't exists already.
-        fs.mkdirSync(this.config["export-dir"])
+        try {
+            fs.mkdirSync(this.config["export-dir"])
+        }
+        catch (error) {
+            logger.debug(`Exporter.start(): directory not created because of: ${error}`)
+        }
 
         // schedule the first look into the database
         setInterval(this.config.interval, (db) => {
