@@ -36,6 +36,9 @@ class Exporter {
         logger.debug(`Exporter.start(): databaseLocation="${databaseLocation}"`)
         const db = new PouchDB(databaseLocation)
 
+        // Create the export directory, if it didn't exists already.
+        fs.mkdirSync(this.config["export-dir"])
+
         // schedule the first look into the database
         setInterval(this.config.interval, (db) => {
             that.processMessages(db)
