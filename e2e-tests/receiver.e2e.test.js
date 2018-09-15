@@ -25,8 +25,8 @@ test("should destroy the database.", (done) => {
         .then(() => { 
             done()
         })
-        .catch(() => { 
-            fail()
+        .catch((error) => { 
+            fail(error)
             done() 
         })
     receiver.databases["transaction"] = undefined

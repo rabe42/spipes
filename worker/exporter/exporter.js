@@ -1,6 +1,7 @@
-
+/* global setImmediate */
 const validateConfiguration = require("./validate-configuration")
 const fs = require("fs")
+const path = require("path")
 const PouchDB = require("pouchdb")
 const logger = require("../../common/logger")
 
@@ -33,21 +34,19 @@ class Exporter {
     start() {
         const that = this
         let databaseLocation = `${this.config.databaseUrl}/${this.config.topic}`
-        logger.debug(`Exporter.start(): databaseLocation="${databaseLocation}"`)
         const db = new PouchDB(databaseLocation)
 
         // Create the export directory, if it didn't exists already.
-        try {
+        if (!fs.existsSync(this.config["export-dir"])) {
             fs.mkdirSync(this.config["export-dir"])
         }
-        catch (error) {
-            logger.debug(`Exporter.start(): directory not created because of: ${error}`)
-        }
+
+        logger.debug(`Exporter.start(): databaseLocation="${databaseLocation} export-dir="${this.config["export-dir"]}"`)
 
         // schedule the first look into the database
-        setInterval(this.config.interval, (db) => {
+        setImmediate(() => {
             that.processMessages(db)
-        }, db)
+        })
     }
 
     /**
@@ -58,7 +57,9 @@ class Exporter {
         logger.debug("Exporter.processMessages()")
         db.allDocs()
             .then((result) => {
-                this.exportMessage(result)
+                for (let i = 0; i < result.rows.length; i++) {
+                    this.exportMessage(result.rows[i])
+                }
             })
             .catch((error) => {
                 logger.error(error)
@@ -73,7 +74,8 @@ class Exporter {
      */
     exportMessage(message) {
         logger.debug(`Exporter.exportMessage(): ${message}`)
-        fs.writeFileSync(fs.path(this.config["export-dir"], message._id), message)
+        const fn = path.format({dir: this.config["export-dir"], base: message.id})
+        fs.writeFileSync(fn, JSON.stringify(message))
     }
 }
 
