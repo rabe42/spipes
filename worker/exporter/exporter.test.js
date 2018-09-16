@@ -1,29 +1,29 @@
 /* global beforeAll test expect fail */
 const fs = require("fs")
+const path = require("path")
 const PouchDB = require("pouchdb")
 const Exporter = require("./exporter")
 const config = require("../../config/exporter")
+const message1 = {
+    _id: "test-1",
+    "originator": "fqdn.node.name",
+    "destination": "fqdn.node.name",
+    "content-type": "mime-type",
+    "topic": "transaction",
+    "data": "First message data"
+}
+const message2 = {
+    _id: "test-2",
+    "originator": "fqdn.node.name",
+    "destination": "fqdn.node.name",
+    "content-type": "mime-type",
+    "topic": "transaction",
+    "data": "Second message data"
+}
 
 beforeAll((done) => {
     const transactionDb = new PouchDB("db/transaction")
-    transactionDb.bulkDocs([
-        {
-            _id: "test-1",
-            "originator": "fqdn.node.name",
-            "destination": "fqdn.node.name",
-            "content-type": "mime-type",
-            "topic": "transaction",
-            "data": "First message data"
-        },
-        {
-            _id: "test-2",
-            "originator": "fqdn.node.name",
-            "destination": "fqdn.node.name",
-            "content-type": "mime-type",
-            "topic": "transaction",
-            "data": "Second message data"
-        }
-    ])
+    transactionDb.bulkDocs([message1, message2])
         .then(() => {
             done()
         })
@@ -74,5 +74,11 @@ test("should have files in the export-dir.", (done) => {
 })
 
 // exported files should have the expected content
+test("should find my content in the 'test-1' file.", () => {
+    const fn = path.format({dir: config["export-dir"], base: message1._id})
+    const fileContent = fs.readFileSync(fn)
+    const json = JSON.parse(fileContent)
+    expect(json.originator).toBe(message1.originator)
+})
 
 // should export also new entries

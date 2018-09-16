@@ -52,10 +52,10 @@ class Exporter {
      */
     processMessages(db) {
         logger.debug("Exporter.processMessages()")
-        db.allDocs()
+        db.allDocs({include_docs: true})
             .then((result) => {
                 for (let i = 0; i < result.rows.length; i++) {
-                    this.exportMessage(result.rows[i])
+                    this.exportMessage(result.rows[i].doc)
                 }
             })
             .catch((error) => {
@@ -71,7 +71,8 @@ class Exporter {
      */
     exportMessage(message) {
         logger.debug(`Exporter.exportMessage(): ${message}`)
-        const fn = path.format({dir: this.config["export-dir"], base: message.id})
+        debugger
+        const fn = path.format({dir: this.config["export-dir"], base: message._id})
         fs.writeFileSync(fn, JSON.stringify(message))
     }
 }
