@@ -1,4 +1,4 @@
-/* global test expect setImmediate */
+/* global afterAll test expect setImmediate */
 
 const config = require("../../config/receiver")
 const Receiver = require("./receiver")
@@ -92,4 +92,8 @@ test("Request successful storage (together with the next test).", (done) => {
 
 test("The former test should result in a 503.", () => {
     expect(streamMock.header[":status"]).toBe(503)
+})
+
+afterAll((done) => {
+    receiver.close().then(done)
 })
