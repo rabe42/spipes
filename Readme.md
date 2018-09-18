@@ -5,6 +5,10 @@ Provides a http/2 based service for the buffered transfer of arbitrary messages 
 
 The individual parts of the infrastructure are intended to be so small, that a design isn't needed at all. Everything should be managed on the architecture level.
 
+### Note
+Resource management is needed for unit and integration tests mainly. Because otherwise the limited database resources are
+blocking unit tests.
+
 ## Seting up of the development environment
 Before starting with the development, you have to setup the development environment. To make sure, that every developer can carry his personal settings for the services, it is possible to setup the envrionment with user specific settings.
 
