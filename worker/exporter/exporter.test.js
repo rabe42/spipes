@@ -1,32 +1,64 @@
-/* global beforeAll test expect fail */
+/* global afterAll beforeAll test expect fail */
 const fs = require("fs")
+const rimraf = require("rimraf")
 const path = require("path")
 const PouchDB = require("pouchdb")
 const Exporter = require("./exporter")
 const config = require("../../config/exporter")
 const message1 = {
     _id: "test-1",
-    "originator": "fqdn.node.name",
-    "destination": "fqdn.node.name",
+    "originator": "fqdn1.node.name",
+    "destination": "fqdn1.node.name",
     "content-type": "mime-type",
     "topic": "transaction",
     "data": "First message data"
 }
 const message2 = {
     _id: "test-2",
-    "originator": "fqdn.node.name",
-    "destination": "fqdn.node.name",
+    "originator": "fqdn2.node.name",
+    "destination": "fqdn2.node.name",
     "content-type": "mime-type",
     "topic": "transaction",
     "data": "Second message data"
 }
+const message3 = {
+    _id: "test-3",
+    "originator": "fqdn3.node.name",
+    "destination": "fqdn3.node.name",
+    "content-type": "mime-type",
+    "topic": "transaction",
+    "data": "Third message data"
+}
+
+let transactionDb = undefined
+
+function mkdir(dirName) {
+    try {
+        fs.mkdirSync(dirName)
+    }
+    catch (err) { /* Ignored */ }
+}
 
 beforeAll((done) => {
-    const transactionDb = new PouchDB("db/transaction")
+    mkdir(config.databaseUrl)
+    transactionDb = new PouchDB("db/transaction")
     transactionDb.bulkDocs([message1, message2])
         .then(() => {
+            rimraf.sync(config["export-dir"])
             done()
         })
+        .catch((error) => {
+            fail(error)
+            done()
+        })
+})
+
+afterAll((done) => {
+    rimraf(config["export-dir"])
+        .then(() => {
+            rimraf(config.databaseUrl)
+        })
+        .then(done)
         .catch((error) => {
             fail(error)
             done()
@@ -70,10 +102,9 @@ test("should have files in the export-dir.", (done) => {
         const directory = fs.readdirSync(config["export-dir"])
         expect(directory.length >= 2).toBeTruthy() // Minimum "test-1", "test-2"
         done()
-    }, 500)
+    }, config.interval + 100)
 })
 
-// exported files should have the expected content
 test("should find my content in the 'test-1' file.", () => {
     const fn = path.format({dir: config["export-dir"], base: message1._id})
     const fileContent = fs.readFileSync(fn)
@@ -81,4 +112,21 @@ test("should find my content in the 'test-1' file.", () => {
     expect(json.originator).toBe(message1.originator)
 })
 
-// should export also new entries
+test("should put a new message into the database.", (done) => {
+    transactionDb.put(message3)
+        .then(() => {
+            done()
+        })
+        .catch((err) => {
+            fail(err)
+            done()
+        })
+})
+
+test("should export a file of a new 'received' message.", (done) => {
+    setTimeout(() => {
+        const fn = path.format({dir: config["export-dir"], base: message3._id})
+        expect(fs.existsSync(fn)).toBeTruthy()
+        done()
+    }, config.interval + 100)
+})

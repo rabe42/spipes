@@ -31,7 +31,7 @@ class Exporter {
     start() {
         const that = this
         let databaseLocation = `${this.config.databaseUrl}/${this.config.topic}`
-        const db = new PouchDB(databaseLocation)
+        this.db = new PouchDB(databaseLocation)
 
         // Create the export directory, if it didn't exists already.
         if (!fs.existsSync(this.config["export-dir"])) {
@@ -42,8 +42,19 @@ class Exporter {
 
         // schedule the first look into the database
         setImmediate(() => {
-            that.processMessages(db)
+            that.processMessages(that.db)
         })
+        // schedule the consecutive looks into the database.
+        setInterval(() => {
+            that.processMessages(that.db)
+        }, this.config.interval)
+    }
+
+    /**
+     * Closes all resources and frees them for further use.
+     */
+    close() {
+        return this.db.close()
     }
 
     /**
