@@ -1,9 +1,10 @@
-/* global test expect fail */
+/* global afterAll beforeAll test expect fail */
 /**
  * This should test the e2e behaviour as far as possible. As the listen() call is blocking, we 
  * will concentrate on the database end of the service.
  */
-
+const rimraf = require("rimraf")
+const fs = require("fs")
 const config = require("../config/receiver")
 const Receiver = require("../server/receiver/receiver")
 const streamMock = require("../server/receiver/http2-stream-mock")
@@ -17,19 +18,31 @@ const bodyObject = {
     data: "My data"
 }
 
-const receiver = new Receiver(config)
+let receiver = undefined
 
-test("should destroy the database.", (done) => {
-    const db = receiver.getDb("transaction")
-    db.destroy()
-        .then(() => { 
-            done()
-        })
-        .catch((error) => { 
-            fail(error)
-            done() 
-        })
-    receiver.databases["transaction"] = undefined
+function mkdir(dirName) {
+    try {
+        fs.mkdirSync(dirName)
+    }
+    catch (err) { /* Ignored */ }
+}
+
+/**
+ * Making sure, we're starting on a green field.
+ */
+beforeAll(() => {
+    mkdir(config.databaseUrl)
+    receiver = new Receiver(config)
+})
+
+/**
+ * Making sure, that we don't influence other tests.
+ */
+afterAll((done) => {
+    receiver.close().then(() => {
+        rimraf.sync(config.databaseUrl)
+        done()
+    })
 })
 
 test("should store the document send in the body in the database.", (done) => {
@@ -42,10 +55,12 @@ test("should store the document send in the body in the database.", (done) => {
     streamMock.events["data"](bodyString)
     streamMock.events["end"]()
     setTimeout(done, 500) // As the saving will be done asynchronously, we should give it some time.
+    debugger
 })
 
-test("should have exactly one item inside!", (done) => {
-    const db = receiver.getDb("transaction")
+test("should have the item in the database!", (done) => {
+    const db = receiver.getDb(bodyObject.topic)
+    expect(db).toBeDefined()
     db.get(calculateId(bodyObject))
         .then((item) => {
             expect(item["sequence-no"]).toBe(201)
