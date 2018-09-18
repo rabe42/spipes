@@ -11,11 +11,11 @@ const streamMock = require("../server/receiver/http2-stream-mock")
 const calculateId = require("../server/receiver/calculate-id")
 
 const bodyObject = {
-    originator: "localhost",
-    destination: "server", 
+    "originator": "localhost",
+    "destination": "server", 
     "sequence-no": 201, 
-    topic: "transaction", 
-    data: "My data"
+    "topic": "transaction", 
+    "data": "My data"
 }
 
 let receiver = undefined
@@ -55,7 +55,6 @@ test("should store the document send in the body in the database.", (done) => {
     streamMock.events["data"](bodyString)
     streamMock.events["end"]()
     setTimeout(done, 500) // As the saving will be done asynchronously, we should give it some time.
-    debugger
 })
 
 test("should have the item in the database!", (done) => {
