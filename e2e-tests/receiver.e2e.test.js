@@ -31,6 +31,7 @@ function mkdir(dirName) {
  * Making sure, we're starting on a green field.
  */
 beforeAll(() => {
+    rimraf.sync(config.databaseUrl)
     mkdir(config.databaseUrl)
     receiver = new Receiver(config)
 })
@@ -45,7 +46,7 @@ afterAll((done) => {
     })
 })
 
-test("should store the document send in the body in the database.", (done) => {
+test("should store the document send in the body in the database.", () => {
     const headers = {
         ":method": "POST",
         ":path": "/"
@@ -54,21 +55,36 @@ test("should store the document send in the body in the database.", (done) => {
     receiver.handleRequest(streamMock, headers)
     streamMock.events["data"](bodyString)
     streamMock.events["end"]()
-    setTimeout(done, 500) // As the saving will be done asynchronously, we should give it some time.
+})
+
+test("should have exactly one item in the database.", (done) => {
+    setTimeout(() => {
+        const db = receiver.getDb(bodyObject.topic)
+        expect(db).toBeDefined()
+        db.allDocs().then((result) => {
+            expect(result.rows.length).toBe(1)
+            done()
+        }).catch((err) => {
+            fail(err)
+            done()
+        })    
+    }, 500)
 })
 
 test("should have the item in the database!", (done) => {
-    const db = receiver.getDb(bodyObject.topic)
-    expect(db).toBeDefined()
-    db.get(calculateId(bodyObject))
-        .then((item) => {
-            expect(item["sequence-no"]).toBe(201)
-            done()
-        })
-        .catch((err) => {
-            fail(err)
-            done()
-        })
+    setTimeout(() => {
+        const db = receiver.getDb(bodyObject.topic)
+        expect(db).toBeDefined()
+        db.get(calculateId(bodyObject))
+            .then((item) => {
+                expect(item["sequence-no"]).toBe(201)
+                done()
+            })
+            .catch((err) => {
+                fail(err)
+                done()
+            })
+    }, 500)
 })
 
 test("should close the databases at the end.", (done) => {
