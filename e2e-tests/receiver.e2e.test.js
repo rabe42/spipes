@@ -71,6 +71,6 @@ test("should have the item in the database!", (done) => {
         })
 })
 
-test("should close the databases at the ned.", (done) => {
+test("should close the databases at the end.", (done) => {
     receiver.close().then(done)
 })
