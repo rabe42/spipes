@@ -40,6 +40,7 @@ function mkdir(dirName) {
 }
 
 beforeAll((done) => {
+    rimraf.sync(config.databaseUrl)
     mkdir(config.databaseUrl)
     transactionDb = new PouchDB("db/transaction")
     transactionDb.bulkDocs([message1, message2])
@@ -53,16 +54,9 @@ beforeAll((done) => {
         })
 })
 
-afterAll((done) => {
-    rimraf(config["export-dir"])
-        .then(() => {
-            rimraf(config.databaseUrl)
-        })
-        .then(done)
-        .catch((error) => {
-            fail(error)
-            done()
-        })
+afterAll(() => {
+    rimraf.sync(config["export-dir"])
+    rimraf.sync(config.databaseUrl)
 })
 
 test("should throw an error, if the configuration isn't provided.", () => {
