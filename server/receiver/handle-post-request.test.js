@@ -75,7 +75,7 @@ test("Shour return 503, if the data is not a JSON.", () => {
 
 test("Request successful storage (together with the next test).", (done) => {
     const dbMock = new DBMock(true, done)
-    receiver.databases[config.acceptedTopics[0].name] = dbMock
+    receiver.databases[config["accepted-topics"][0].name] = dbMock
 
     receiver.handlePostRequest("/", streamMock)
     streamMock.events["data"](JSON.stringify(correctDoc))
@@ -88,7 +88,7 @@ test("The former test should result in a 200 answer.", () => {
 
 test("Request successful storage (together with the next test).", (done) => {
     const dbMock = new DBMock(false, done)
-    receiver.databases[config.acceptedTopics[0].name] = dbMock
+    receiver.databases[config["accepted-topics"][0].name] = dbMock
 
     receiver.handlePostRequest("/", streamMock)
     streamMock.events["data"](JSON.stringify(correctDoc))

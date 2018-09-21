@@ -45,8 +45,8 @@ function validateParameters(parameters, configuration) {
  * @param {string} topicName The name of the topic.
  */
 function validateTopic(configuration, topicName) {
-    for (let i = 0; i < configuration.acceptedTopics.length; i++) {
-        if (configuration.acceptedTopics[i].name === topicName) {
+    for (let i = 0; i < configuration["accepted-topics"].length; i++) {
+        if (configuration["accepted-topics"][i].name === topicName) {
             return
         }
     }

@@ -46,7 +46,7 @@ The following metadata is expected to be provided in the configuration:
     "key-location": "/path/to/https/key",
     "cert-location": "/path/to/https/certificate",
     "acceptedPartners": ["fqdn.node.name", "fqdn.node.name"],
-    "acceptedTopics": [
+    "accepted-topics": [
         {"name": "topic-name", "hosts": ["fqdn", "fqdn", "fqdn"]}, 
         {"name": "topic-name", "hosts": ["fqdn", "fqdn"]}
     ],
