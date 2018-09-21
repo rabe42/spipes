@@ -34,6 +34,11 @@ class DBMock {
         })
         return this.thePromise
     }
+    close() {
+        return new Promise((resolve) => {
+            resolve()
+        })
+    }
 }
 
 let receiver = new Receiver(config)
@@ -95,5 +100,5 @@ test("The former test should result in a 503.", () => {
 })
 
 afterAll((done) => {
-    receiver.close().then(done)
+    receiver.close().then(done())
 })
