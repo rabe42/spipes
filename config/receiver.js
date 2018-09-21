@@ -5,7 +5,7 @@ const configuration = {
     "name": "receiver",
     "port": 3000,
     "key-location": path.normalize(__dirname + "../../server.key"),
-    "certLocation": path.normalize(__dirname + "../../server.crt"),
+    "cert-location": path.normalize(__dirname + "../../server.crt"),
     "database-url": "db",
     "maxDocumentSizeBytes": 2097152,
     "acceptedTopics": [

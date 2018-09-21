@@ -23,7 +23,7 @@ if (process.argv.length === 3) {
 }
 
 const h2session = http2.connect(`https://localhost:${config.port}`, {
-    ca: fs.readFileSync(config.certLocation)
+    ca: fs.readFileSync(config["cert-location"])
 })
 h2session.on("error", (err) => {
     winston.error(`Exiting h2get client with error: ${err}`)

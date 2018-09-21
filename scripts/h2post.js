@@ -29,7 +29,7 @@ if (process.argv.length === 3) {
     path = process.argv[2]
 }
 
-h2request(config.certLocation, `https://localhost:${config.port}`, method, path, bodyString)
+h2request(config["cert-location"], `https://localhost:${config.port}`, method, path, bodyString)
     .then(data => {
         if (data !== undefined) {
             winston.info(`\n${data}`)
