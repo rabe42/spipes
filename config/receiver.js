@@ -4,7 +4,7 @@ const path = require("path")
 const configuration = {
     "name": "receiver",
     "port": 3000,
-    "keyLocation": path.normalize(__dirname + "../../server.key"),
+    "key-location": path.normalize(__dirname + "../../server.key"),
     "certLocation": path.normalize(__dirname + "../../server.crt"),
     "database-url": "db",
     "maxDocumentSizeBytes": 2097152,

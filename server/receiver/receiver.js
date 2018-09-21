@@ -35,7 +35,7 @@ class Receiver extends Server {
     createServer() {
         const that = this   // Overcome the JS scoping glitch
         this.server = http2.createSecureServer({
-            key: fs.readFileSync(this.config.keyLocation),
+            key: fs.readFileSync(this.config["key-location"]),
             cert: fs.readFileSync(this.config.certLocation)
         })
         // Register the callacks for the important server events.
