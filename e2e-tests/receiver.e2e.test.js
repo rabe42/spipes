@@ -1,4 +1,4 @@
-/* global afterAll beforeAll test expect fail */
+/* global afterAll beforeAll test expect fail setImmediate */
 /**
  * This should test the e2e behaviour as far as possible. As the listen() call is blocking, we 
  * will concentrate on the database end of the service.
@@ -30,10 +30,12 @@ function mkdir(dirName) {
 /**
  * Making sure, we're starting on a green field.
  */
-beforeAll(() => {
+beforeAll((done) => {
     rimraf.sync(config.databaseUrl)
     mkdir(config.databaseUrl)
     receiver = new Receiver(config)
+    // Making sure, that the changes in the file system can be considered...
+    setImmediate(done)
 })
 
 /**
