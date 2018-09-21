@@ -66,8 +66,15 @@ it finished. To avoid parallel processing of the same data, it must be made sure
 
 # Forwarder
 ## Node Configuration
-Each forwarder can be configured to communicate the received information to a set of receiving hosts. Each packet 
-will be communicated to all hosts.
+Each forwarder can be configured to communicate the received information to a set of receiving hosts. Each message will be communicated to all hosts.
+A forwarder will read the information of a topic from the database and forward this to the configured hosts.
+
+```JSON
+{
+    "topic": "The name of the topic",
+    "hosts": [{"host": "fqdn", "port": 3000}, {"host": "fqdn", "port": 2000}]
+}
+```
 
 # Executor
 ## Node Configuration
