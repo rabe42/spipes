@@ -2,12 +2,12 @@
 
 const configuration = {
     "name": process.env.HOSTNAME || "localhost",
-    "topic": "transaction",
-    "database-url": "db",
-    "limit": 10,
-    "interval": 500,
-    "export-dir": "./export",
-    "error-dir": "./error"
+    "topic": process.env.TOPIC || "transaction",
+    "database-url": process.env.DB || "db",
+    "limit": process.env.LIMIT || 10,
+    "interval": process.env.INTERVAL || 500,
+    "export-dir": process.env.EXPORT_DIR || "./export",
+    "error-dir": process.env.ERROR_DIR || "./error"
 }
 
 module.exports = configuration
