@@ -31,8 +31,8 @@ function mkdir(dirName) {
  * Making sure, we're starting on a green field.
  */
 beforeAll((done) => {
-    rimraf.sync(config.databaseUrl)
-    mkdir(config.databaseUrl)
+    rimraf.sync(config["database-url"])
+    mkdir(config["database-url"])
     receiver = new Receiver(config)
     // Making sure, that the changes in the file system can be considered...
     setImmediate(done)
@@ -43,7 +43,7 @@ beforeAll((done) => {
  */
 afterAll((done) => {
     receiver.close().then(() => {
-        rimraf.sync(config.databaseUrl)
+        rimraf.sync(config["database-url"])
         done()
     })
 })

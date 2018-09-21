@@ -50,7 +50,7 @@ The following metadata is expected to be provided in the configuration:
         {"name": "topic-name", "hosts": ["fqdn", "fqdn", "fqdn"]}, 
         {"name": "topic-name", "hosts": ["fqdn", "fqdn"]}
     ],
-    "databaseUrl": "database url",
+    "database-url": "database url",
     "maxDocumentSizeBytes": 2000000
 }
 ```

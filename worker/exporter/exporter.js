@@ -30,7 +30,7 @@ class Exporter {
      */
     start() {
         const that = this
-        let databaseLocation = `${this.config.databaseUrl}/${this.config.topic}`
+        let databaseLocation = `${this.config["database-url"]}/${this.config.topic}`
         this.db = new PouchDB(databaseLocation)
 
         // Create the export directory, if it didn't exists already.

@@ -69,7 +69,7 @@ test("Accepted Topics should be an array.", () => {
 
 test("Database must be provided as a string.", () => {
     try {
-        validateConfiguration({name: "test", port: 1, keyLocation: "1", certLocation: "1", acceptedTopics: [], databaseUrl: 1})
+        validateConfiguration({name: "test", port: 1, keyLocation: "1", certLocation: "1", acceptedTopics: [], "database-url": 1})
         fail()
     }
     catch (e) { /* Works as intended! */ }
@@ -77,7 +77,7 @@ test("Database must be provided as a string.", () => {
 
 test("Max document size must be provided as a number.", () => {
     try {
-        validateConfiguration({name: "test", port: 1, keyLocation: "1", certLocation: "1", acceptedTopics: [], databaseUrl: "1", maxDocumentSizeBytes: "1"})
+        validateConfiguration({name: "test", port: 1, keyLocation: "1", certLocation: "1", acceptedTopics: [], "database-url": "1", maxDocumentSizeBytes: "1"})
         fail()
     }
     catch (e) { /* Works as intended! */ }
@@ -85,12 +85,12 @@ test("Max document size must be provided as a number.", () => {
 
 test("Providing all configuration attributes with the correct types should work.", () => {
     validateConfiguration({
-        name: "test", 
-        port: 1, 
-        keyLocation: ".....1.1", 
-        certLocation: ".1.1", 
-        acceptedTopics: [{name: "T1", hosts: ["::1"]}], 
-        databaseUrl: "db://a/b/c1", 
-        maxDocumentSizeBytes: 1
+        "name": "test", 
+        "port": 1, 
+        "keyLocation": ".....1.1", 
+        "certLocation": ".1.1", 
+        "acceptedTopics": [{name: "T1", hosts: ["::1"]}], 
+        "database-url": "db://a/b/c1", 
+        "maxDocumentSizeBytes": 1
     })
 })

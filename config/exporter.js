@@ -3,7 +3,7 @@
 const configuration = {
     "name": process.env.HOSTNAME || "localhost",
     "topic": "transaction",
-    "databaseUrl": "db",
+    "database-url": "db",
     "limit": 10,
     "interval": 500,
     "export-dir": "./export",

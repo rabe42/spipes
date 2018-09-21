@@ -40,8 +40,8 @@ function mkdir(dirName) {
 }
 
 beforeAll((done) => {
-    rimraf.sync(config.databaseUrl)
-    mkdir(config.databaseUrl)
+    rimraf.sync(config["database-url"])
+    mkdir(config["database-url"])
     transactionDb = new PouchDB("db/transaction")
     transactionDb.bulkDocs([message1, message2])
         .then(() => {
@@ -56,7 +56,7 @@ beforeAll((done) => {
 
 afterAll(() => {
     rimraf.sync(config["export-dir"])
-    rimraf.sync(config.databaseUrl)
+    rimraf.sync(config["database-url"])
 })
 
 test("should throw an error, if the configuration isn't provided.", () => {
@@ -70,7 +70,7 @@ test("should throw an error, if the configuration isn't provided.", () => {
 test("should accept only valid configuration.", () => {
     const falseConfig = {
         "name": "a name",
-        "databaseUrl": "db",
+        "database-url": "db",
         "export-dir": "./export"    
     }
     try {
