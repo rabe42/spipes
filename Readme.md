@@ -33,10 +33,12 @@ The following metadata is expected with each data package:
 ```
 
 # Receiver 
+## Responsibility
+A Receiver stores the messages unter a particular topic into the data store. It validates the content before it is stored. It also increases the number of hops the message was already received by. If this number exceed the number configured in the "max-hops" parameter, the message is discarded.
+
 ## Node Configuration
-Each receiver node can be configured to accept communication only from a particular set of hosts. It is the responsibility
-of the receiver to receive metadata and data from a communication partner by http(s) protocol and to persist the data into
-a store, which is shared with different workers.
+Each receiver node can be configured to accept communication only from a particular set of hosts. It is the responsibility of the receiver to receive metadata and data from a communication partner by http(s) protocol and to persist the data into a store, which is shared with different workers.
+
 
 The following metadata is expected to be provided in the configuration:
 ```JSON
@@ -51,7 +53,8 @@ The following metadata is expected to be provided in the configuration:
         {"name": "topic-name", "hosts": ["fqdn", "fqdn"]}
     ],
     "database-url": "database url",
-    "maxDocumentSizeBytes": 2000000
+    "max-hops": 5,                      // The maximum number of hops
+    "maxDocumentSizeBytes": 2000000     // The maximum size of a message.
 }
 ```
 An incomplete configuration will result in a termination of the services.
@@ -61,18 +64,21 @@ The `receiver` will accept the connection from a list of hosts. It must validate
 
 # Worker
 ## General
-A worker is configured to read metadata and data from a data store, process the data and mark the data as processed after 
-it finished. To avoid parallel processing of the same data, it must be made sure, that the data is not happening.
+A worker is configured to read metadata and data from a data store, process the data and mark the data as processed after it finished. To avoid parallel processing of the same data, it must be made sure, that the data is not happening.
 
 # Forwarder
 ## Node Configuration
 Each forwarder can be configured to communicate the received information to a set of receiving hosts. Each message will be communicated to all hosts.
-A forwarder will read the information of a topic from the database and forward this to the configured hosts.
+A forwarder will read the information of a topic from the database and forward this to the target, if this is part of the configured hosts, or to all configured hosts otherwise. (Flodding)
+To avoid the flodding of the system with the messages, we adopt the strategy from the TCP/IP stack. We count the numbers of hops in the meta information of the message.
 
 ```JSON
 {
     "topic": "The name of the topic",
-    "hosts": [{"host": "fqdn", "port": 3000}, {"host": "fqdn", "port": 2000}]
+    "hosts": [{"host": "fqdn", "port": 3000}, {"host": "fqdn", "port": 2000}],
+    "database-url": "http://couch-db-or-file-location",
+    "limit": 100,       // 100 messages at a time
+    "interval": 3000    // Every 3s
 }
 ```
 
