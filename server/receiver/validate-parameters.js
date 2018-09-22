@@ -15,6 +15,7 @@ const schema = Joi.object().keys({
     "originator": Joi.string().hostname().required(),
     "destination": Joi.string().hostname().required(),
     "sequence-no": Joi.number().required(),
+    "hops": Joi.number().integer(),
     "content-type": Joi.string(),
     "topic": Joi.string().required(),
     "data": Joi.string()

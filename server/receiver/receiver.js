@@ -120,6 +120,7 @@ class Receiver extends Server {
                 let data = JSON.parse(that.dataString)
                 validateParameters(data, that.config)
                 data._id = calculateId(data)
+                data.hops = !data.hops ? 1 : data.hops+1
                 that.storeData(data)
                     .then(() => {
                         logger.debug("Receiver.handlePostRequest(): Data stored successfully.")
