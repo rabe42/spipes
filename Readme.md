@@ -74,6 +74,7 @@ To avoid the flodding of the system with the messages, we adopt the strategy fro
 
 ```JSON
 {
+    "name": "fqdn",     // The name of the current node
     "topic": "The name of the topic",
     "hosts": [{"host": "fqdn", "port": 3000}, {"host": "fqdn", "port": 2000}],
     "database-url": "http://couch-db-or-file-location",
