@@ -121,15 +121,20 @@ class Receiver extends Server {
                 validateParameters(data, that.config)
                 data._id = calculateId(data)
                 data.hops = !data.hops ? 1 : data.hops+1
-                that.storeData(data)
-                    .then(() => {
-                        logger.debug("Receiver.handlePostRequest(): Data stored successfully.")
-                        that.jsonStatusResponse(stream, 200, "Stored successfully!")
-                    })
-                    .catch((error) => {
-                        logger.error("Receiver.handlePostRequest(): Store data not possible due to: " + error)
-                        that.jsonStatusResponse(stream, 503, "Error storing data: " + error)
-                    })
+                if (data.hops > that.config["max-hops"]) {
+                    logger.info("Receiver.handlePostRequest(): Droping message with too many hops.")
+                }
+                else {
+                    that.storeData(data)
+                        .then(() => {
+                            logger.debug("Receiver.handlePostRequest(): Data stored successfully.")
+                            that.jsonStatusResponse(stream, 200, "Stored successfully!")
+                        })
+                        .catch((error) => {
+                            logger.error("Receiver.handlePostRequest(): Store data not possible due to: " + error)
+                            that.jsonStatusResponse(stream, 503, "Error storing data: " + error)
+                        })
+                }
             }
             catch (e) {
                 logger.error("Receiver.handlePostRequest(): " + e)

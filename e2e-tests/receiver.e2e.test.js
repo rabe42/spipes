@@ -91,6 +91,34 @@ test("should have the item in the database!", (done) => {
     }, 500)
 })
 
+test("should not take a message with too many hops in.", () => {
+    bodyObject.hops = config["max-hops"] + 1
+    bodyObject["sequence-no"]++
+    const headers = {
+        ":method": "POST",
+        ":path": "/"
+    }
+    const bodyString = JSON.stringify(bodyObject)
+    receiver.handleRequest(streamMock, headers)
+    streamMock.events["data"](bodyString)
+    streamMock.events["end"]()
+})
+
+test("the object should'nt be in the database.", (done) => {
+    setTimeout(() => {
+        const db = receiver.getDb(bodyObject.topic)
+        expect(db).toBeDefined()
+        db.get(calculateId(bodyObject))
+            .then(() => {
+                fail()
+                done()
+            })
+            .catch(() => {
+                done()
+            })
+    }, 500)
+})
+
 test("should close the databases at the end.", (done) => {
     receiver.close().then(done)
 })
