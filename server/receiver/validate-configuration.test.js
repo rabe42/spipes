@@ -91,6 +91,7 @@ test("Providing all configuration attributes with the correct types should work.
         "cert-location": ".1.1", 
         "accepted-topics": [{name: "T1", hosts: ["::1"]}], 
         "database-url": "db://a/b/c1", 
+        "max-hops": 10,
         "maxDocumentSizeBytes": 1
     })
 })

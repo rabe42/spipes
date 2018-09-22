@@ -21,6 +21,7 @@ const configSchema = Joi.object().keys({
     "cert-location": Joi.string().regex(/^[-/\w.]+\.[-\w]{1,64}/).required(),
     "accepted-topics": Joi.array().items(topicSchema).min(1).unique().required(),
     "database-url": Joi.string().required(), // Can be also an URI
+    "max-hops": Joi.number().integer().min(1).max(20),
     "maxDocumentSizeBytes": Joi.number().integer().required()
 })
 
