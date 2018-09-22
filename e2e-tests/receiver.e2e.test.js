@@ -13,6 +13,7 @@ const calculateId = require("../server/receiver/calculate-id")
 const bodyObject = {
     "originator": "localhost",
     "destination": "server", 
+    "hops": 2,
     "sequence-no": 201, 
     "topic": "transaction", 
     "data": "My data"
@@ -80,6 +81,7 @@ test("should have the item in the database!", (done) => {
         db.get(calculateId(bodyObject))
             .then((item) => {
                 expect(item["sequence-no"]).toBe(201)
+                expect(item["hops"]).toBe(3)
                 done()
             })
             .catch((err) => {
