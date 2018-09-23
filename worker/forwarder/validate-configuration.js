@@ -3,7 +3,8 @@ const logger = require("../../common/logger")
 
 const hostSchema = Joi.object().keys({
     "host": Joi.string().hostname().required(),
-    "port": Joi.number().integer().min(1).max(65000)
+    "port": Joi.number().integer().min(1).max(65000),
+    "key": Joi.string().required()
 })
 
 const configSchema = Joi.object().keys({

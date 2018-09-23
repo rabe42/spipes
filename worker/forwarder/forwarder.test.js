@@ -13,3 +13,8 @@ test("Should not create a forwarder without a valid configuration.", () => {
     }
     catch (error) { /* Works as expected. */ }
 })
+
+test("Starting the forwarder should be possible.", () => {
+    const forwarder = new Forwarder(config)
+    forwarder.start()
+})
