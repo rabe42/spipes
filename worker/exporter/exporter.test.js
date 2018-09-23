@@ -80,13 +80,15 @@ test("should accept only valid configuration.", () => {
     catch (error) { /* Works as designed */ }
 })
 
-test("should be possible to create an exporter instance.", () => {
+test("should be possible to create an exporter instance.", (done) => {
     const exporter = new Exporter(config)
     expect(exporter).toBeDefined()
+    exporter.close().then(done)
 })
 
+const exporter = new Exporter(config)
+
 test("should be possible to get all not exported docs from the database.", () => {
-    const exporter = new Exporter(config)
     exporter.start()
 })
 
@@ -123,4 +125,8 @@ test("should export a file of a new 'received' message.", (done) => {
         expect(fs.existsSync(fn)).toBeTruthy()
         done()
     }, config.interval + 100)
+})
+
+test("should close the database.", (done) => {
+    exporter.close().then(done)
 })

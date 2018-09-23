@@ -1,8 +1,8 @@
 /* global setImmediate */
+const Worker = require("../worker")
 const validateConfiguration = require("./validate-configuration")
 const fs = require("fs")
 const path = require("path")
-const PouchDB = require("pouchdb")
 const logger = require("../../common/logger")
 
 /**
@@ -14,9 +14,10 @@ const logger = require("../../common/logger")
  * 
  * @author Dr. Ralf Berger (c) 2018
  */
-class Exporter {
+class Exporter extends Worker {
 
     constructor(config) {
+        super(config)
         if (!config) {
             throw new Error("No config provided!")
         }
@@ -30,15 +31,15 @@ class Exporter {
      */
     start() {
         const that = this
-        let databaseLocation = `${this.config["database-url"]}/${this.config.topic}`
-        this.db = new PouchDB(databaseLocation)
+        debugger
+        this.init(`${this.config["database-url"]}/${this.config.topic}`)
 
         // Create the export directory, if it didn't exists already.
         if (!fs.existsSync(this.config["export-dir"])) {
             fs.mkdirSync(this.config["export-dir"])
         }
 
-        logger.debug(`Exporter.start(): databaseLocation="${databaseLocation} export-dir="${this.config["export-dir"]}"`)
+        logger.debug(`Exporter.start(): export-dir="${this.config["export-dir"]}"`)
 
         // schedule the first look into the database
         setImmediate(() => {
@@ -48,13 +49,6 @@ class Exporter {
         setInterval(() => {
             that.processMessages(that.db)
         }, this.config.interval)
-    }
-
-    /**
-     * Closes all resources and frees them for further use.
-     */
-    close() {
-        return this.db.close()
     }
 
     /**
