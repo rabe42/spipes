@@ -31,7 +31,6 @@ class Exporter extends Worker {
      */
     start() {
         const that = this
-        debugger
         this.init(`${this.config["database-url"]}/${this.config.topic}`)
 
         // Create the export directory, if it didn't exists already.
