@@ -24,11 +24,12 @@ class Worker {
      * @returns The promise of the close.
      */
     close() {
-        logger.debug(`${this.constructor.name}.close(): Close the database.`)
         if (this.db) {
+            logger.info(`${this.constructor.name}.close(): Closing the database for topic: ${this.config.topic}`)
             return this.db.close()
         }
         return new Promise((resolve) => {
+            logger.debug(`${this.constructor.name}.close(): No database present.`)
             resolve()
         })
     }

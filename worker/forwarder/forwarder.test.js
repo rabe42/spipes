@@ -14,7 +14,15 @@ test("Should not create a forwarder without a valid configuration.", () => {
     catch (error) { /* Works as expected. */ }
 })
 
+let forwarder = undefined
 test("Starting the forwarder should be possible.", () => {
-    const forwarder = new Forwarder(config)
+    forwarder = new Forwarder(config)
     forwarder.start()
+})
+
+test("should close the forwarder.", (done) => {
+    forwarder.close().then(done).catch((err) => {
+        fail(err)
+        done()
+    })
 })

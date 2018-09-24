@@ -1,6 +1,7 @@
 const Worker = require("../worker")
 const logger = require("../../common/logger")
 const validateConfiguration = require("./validate-configuration")
+const http2 = require("http2")
 
 /**
  * This is the forwarder worker. It tries to forward the content of the
@@ -13,15 +14,22 @@ class Forwarder extends Worker {
         super(config)
         validateConfiguration(config)
         this.init(`${this.config["database-url"]}/${this.config.topic}`)
-        this.createH2Clients()
+        this.createH2ClientSession(config)
     }
 
     /**
      * Creates the http/2 clients, which will be used to communicate
      * the changes.
      */
-    createH2Clients() {
-
+    createH2ClientSession(config) {
+        this.sessions = {}
+        for (let i = 0; i < config.hosts.length; i++) {
+            const hostDefinition = this.config.hosts[i]
+            const h2session = http2.connect(
+                `https://${hostDefinition.host}:${hostDefinition.port}`,
+                {ca: hostDefinition.certificate})
+            this.sessions[hostDefinition.host] = h2session
+        }
     }
 
     start() {
