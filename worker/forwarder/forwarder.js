@@ -29,6 +29,12 @@ class Forwarder extends Worker {
                 `https://${hostDefinition.host}:${hostDefinition.port}`,
                 {ca: hostDefinition.certificate})
             this.sessions[hostDefinition.host] = h2session
+            h2session.on("error", (err) => {
+                logger.error(`Forwarder.createH2ClientSession(${this.config.topic}): error - Exiting h2 client with error: ${err}`)
+            })
+            h2session.on("close", () => {
+                logger.info(`Forwarder.createH2ClientSession(${this.config.topic}): close - exiting h2 client.`)
+            })
         }
     }
 
