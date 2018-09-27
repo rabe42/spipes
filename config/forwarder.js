@@ -55,7 +55,7 @@ module.exports = {
             P75G2+RRVC4PKaqEv1kX8x1C4tjBHkb8aO3/fcdUXjk8caycMKpXOBag+9ZsGemj\
             -----END CERTIFICATE-----"}
     ],
-    "database-url": process.env.DB || "db",
+    "database-url": process.env.DB || "fw-db",
     "limit": process.env.LIMIT || 10,
     "interval": process.env.INTERVAL || 500,
 }

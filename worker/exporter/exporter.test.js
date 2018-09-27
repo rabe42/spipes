@@ -1,4 +1,4 @@
-/* global afterAll beforeAll test expect fail */
+/* global setImmediate afterAll beforeAll test expect fail */
 const fs = require("fs")
 const rimraf = require("rimraf")
 const path = require("path")
@@ -42,7 +42,7 @@ function mkdir(dirName) {
 beforeAll((done) => {
     rimraf.sync(config["database-url"])
     mkdir(config["database-url"])
-    transactionDb = new PouchDB("db/transaction")
+    transactionDb = new PouchDB(`${config["database-url"]}/${config["topic"]}`)
     transactionDb.bulkDocs([message1, message2])
         .then(() => {
             rimraf.sync(config["export-dir"])
@@ -54,9 +54,10 @@ beforeAll((done) => {
         })
 })
 
-afterAll(() => {
+afterAll((done) => {
     rimraf.sync(config["export-dir"])
     rimraf.sync(config["database-url"])
+    setImmediate(done)
 })
 
 test("should throw an error, if the configuration isn't provided.", () => {

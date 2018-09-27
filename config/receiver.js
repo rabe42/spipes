@@ -6,7 +6,7 @@ const configuration = {
     "port": process.env.PORT || 3000,
     "key-location": process.env.KEY_FILE || path.normalize(__dirname + "../../server.key"),
     "cert-location": process.env.CERT_FILE || path.normalize(__dirname + "../../server.crt"),
-    "database-url": process.env.DB || "db",
+    "database-url": process.env.DB || "rec-db",
     "max-hops": process.env.MAX_HOPS || 5,
     "maxDocumentSizeBytes": process.env.MAX_SIZE || 2097152,
     "accepted-topics": [

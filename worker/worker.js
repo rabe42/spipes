@@ -1,6 +1,9 @@
+/* global setImmediate */
 const logger = require("../common/logger")
 const PouchDB = require("pouchdb")
 const Promise = require("promise")
+const fs = require("fs")
+const path = require("path")
 
 class Worker {
     constructor(config) {
@@ -12,11 +15,41 @@ class Worker {
 
     /**
      * Creates a new database for the consecutive use.
-     * @param {string} databaseLocation The location of the database.
+     * @param {string} databaseUrl The URL of the 
+     * @param {string} topic The topic for which the database should created.
      */
-    init(databaseLocation) {
+    init(databaseUrl, topic) {
+        let databaseLocation = undefined
+        logger.debug(`${this.constructor.name}.init(): ${databaseUrl} / ${topic}.`)
+        if (this.isRemoteDatabase(databaseUrl)) {
+            databaseLocation = `${databaseLocation}/${topic}`
+        }
+        else {
+            this.checkLocationExists(databaseUrl)
+            databaseLocation = path.format({dir: databaseUrl, base: topic})
+        }
         logger.debug(`${this.constructor.name}.init(): Create database at "${databaseLocation}".`)
         this.db = new PouchDB(databaseLocation)
+    }
+
+    /**
+     * Checks, if the provided URL is remote.
+     * @param {string} databaseUrl The URL or directory of the database.
+     */
+    isRemoteDatabase(databaseUrl) {
+        return databaseUrl.startsWith("http://") 
+            || databaseUrl.startsWith("https://")
+    }
+
+    /**
+     * Checks, if the folder of the database exists.
+     * @param {string} databaseUrl A local directory to check.
+     */
+    checkLocationExists(databaseUrl) {
+        if (!fs.existsSync(databaseUrl)) {
+            logger.error(`Worker.init(): Database location "${databaseUrl}" isn't valid!`)
+            throw new Error(`Database location "${databaseUrl}" isn't valid!`)
+        }
     }
 
     /**
@@ -30,7 +63,7 @@ class Worker {
         }
         return new Promise((resolve) => {
             logger.debug(`${this.constructor.name}.close(): No database present.`)
-            resolve()
+            setImmediate(resolve())
         })
     }
 

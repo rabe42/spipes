@@ -13,7 +13,7 @@ class Forwarder extends Worker {
     constructor(config) {
         super(config)
         validateConfiguration(config)
-        this.init(`${this.config["database-url"]}/${this.config.topic}`)
+        this.init(this.config["database-url"], this.config.topic)
         this.createH2ClientSession(config)
     }
 
