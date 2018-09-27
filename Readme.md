@@ -1,18 +1,16 @@
 # Simple Pipes
 
 ## Overview
-Provides a http/2 based service for the buffered transfer of arbitrary messages in an distributed environment. This should work as the backbone of an message event driven distributed system. It is in the same time an essential part of a data logistic system.
+Provides a http/2 based service for the buffered transfer of arbitrary messages in an distributed environment. This should work as the backbone of an message event driven distributed system. It is in the same time an essential part of a data logistic system, which has to provide different types of data to distinct end points.
 
 The individual parts of the infrastructure are intended to be so small, that a design isn't needed at all. Everything should be managed on the architecture level.
 
 ### Note
 Resource management is needed for unit and integration tests mainly. Because otherwise the limited database resources are
-blocking unit tests.
+blocking other unit tests.
 
 ## Seting up of the development environment
-Before starting with the development, you have to setup the development environment. To make sure, that every developer can carry his personal settings for the services, it is possible to setup the envrionment with user specific settings.
-
-The user specific settings are stored in the `./usr` subfolder. They will be copied by the command `npm run setup-dev` to the resprective configuration folders. The mechanism uses the $USER variable of the operating system. A workstation specific setting isn't foreseen yet.
+The whole settings can be influenced by environment variables only. This allows to influence the settings also at runtime. Take a look to the files in the configuration directory to identify the different environment variables.
 
 ## Technology Sketch
 The basic idea is, that the service is separated into minimum two independend parts. One is a single threaded server, the `receiver`, that waits for connections, stores the received metadata and content into a local pouchdb. The other is the `forwarder` service, which periodically looks into the pouchDB and forwards the stored content accoring to the given metadata. To support a pull architecture there is a 
@@ -79,18 +77,33 @@ To avoid the flodding of the system with the messages, we adopt the strategy fro
     "hosts": [{"host": "fqdn", "port": 3000}, {"host": "fqdn", "port": 2000}],
     "database-url": "http://couch-db-or-file-location",
     "limit": 100,       // 100 messages at a time
-    "interval": 3000    // Every 3s
+    "interval": 3000,   // Every 3s
+    "retries": 3        // Number of retries per node.
 }
 ```
+
+## Open Topics
+[ ] Manage what happen, if the receiving host is not accepting for a configured amount of time/tries.
+[ ] Manage what happen, if all receivers accepted a message.
+[ ] Manage what happen, if all 
 
 # Executor
 ## Node Configuration
 This may allow in the future to configure how to work with the different mime-types.
 
+## Open Topics
+[ ] Start to refine
+
 # Exporter
 ## Overview
 This exports all messages, received for the configured topic and targeted to the receiving system, to export them
 in the same order, like they were provided on the sender site. Another service, may be used to check, if the message is already exported, or if there is a gap in the sequence of the sequence number of a particular sender.
+
+## Open Topics
+[ ] Reading just the delta.
+[ ] Moving exported messages to a special done queue.
+[ ] Moving non exported messages to a error queue.
+[ ] 
 
 # Environment
 ## Cryptography
@@ -106,7 +119,7 @@ For development purposes, you may choose `localhost` as the FQDN of the host.
 
 # Janitor
 ## Overview
-The Janitor will cleanup the different topics after the defined retention period. The Janitor is just a special worker with delete rights on the database. This is the only way in the system, that something got deleted!
+The Janitor will cleanup the different topics after the defined retention period. The Janitor is just a special worker with delete rights on the database. This is the only way in the system, that something got deleted! Checks after a configurable interval, if data in the database is stored longer than the retention period for this topic. If the retention period is met, the content will be removed from the database.
 
 ## Node Configuration
 ```JSON
@@ -117,8 +130,8 @@ The Janitor will cleanup the different topics after the defined retention period
 }
 ```
 
-# Functional Description
-Checks after a configurable interval, if data in the database is stored longer than the retention period for this topic.If the retention period is met, the content will be removed from the database.
+## Open Topics
+[ ] Start to refine.
 
 # A Simple http/2 client
 For the sake of integration tests, a simple http/2 client is provided in the scripts subfolder. This client should be used to replay wrong behaviour between the different nodes of the infrastructure, as it can simulate more use cases than just the limited range given by the protocol between the nodes. It may also be used to simulate security attacs.
@@ -127,4 +140,4 @@ For the sake of integration tests, a simple http/2 client is provided in the scr
 * Work on more than one request at a time.
 * Cryptography for the docker parts, based on `lets encrypt`.
 * Docker Images for the infrastructure parts.
-* Architecture Sketch.
+* Architecture Sketches for the different setup scenarios.
