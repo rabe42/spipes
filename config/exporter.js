@@ -7,7 +7,7 @@ const configuration = {
     "limit": process.env.LIMIT || 10,
     "interval": process.env.INTERVAL || 500,
     "export-dir": process.env.EXPORT_DIR || "./export",
-    "error-dir": process.env.ERROR_DIR || "./error"
+    "exported-store": process.env.EXPORTED || "exported"
 }
 
 module.exports = configuration

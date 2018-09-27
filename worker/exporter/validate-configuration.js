@@ -8,7 +8,7 @@ const configSchema = Joi.object().keys({
     "limit": Joi.number().integer().min(1).max(65000),
     "interval": Joi.number().integer().min(10),
     "export-dir": Joi.string().required(),
-    "error-dir": Joi.string().required()
+    "exported-store": Joi.string().required()
 })
 
 function validateConfiguration(config) {
