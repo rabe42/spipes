@@ -105,8 +105,6 @@ This exports all messages, received for the configured topic and targeted to the
 in the same order, like they were provided on the sender site. Another service, may be used to check, if the message is already exported, or if there is a gap in the sequence of the sequence number of a particular sender.
 
 ## Open Topics
-[*] Reading just the delta.
-[*] Moving exported messages to a special "exported" store.
 [ ] Moving non exported messages to a "error" store.
 [ ] Parallel exporting but sequencial remove of the lock file. (Performance)
 
