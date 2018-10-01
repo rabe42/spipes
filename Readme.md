@@ -106,8 +106,8 @@ in the same order, like they were provided on the sender site. Another service, 
 
 ## Open Topics
 [*] Reading just the delta.
-[*] Moving exported messages to a special done queue.
-[ ] Moving non exported messages to a error queue.
+[*] Moving exported messages to a special "exported" store.
+[ ] Moving non exported messages to a "error" store.
 [ ] Parallel exporting but sequencial remove of the lock file. (Performance)
 
 # Environment

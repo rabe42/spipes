@@ -20,11 +20,7 @@ class Exporter extends Worker {
 
     constructor(config) {
         super(config)
-        if (!config) {
-            throw new Error("No config provided!")
-        }
         validateConfiguration(config)
-        this.config = config
     }
 
     initExportedStore(databaseUrl, exportedStore) {
@@ -75,7 +71,7 @@ class Exporter extends Worker {
                         // You have to store the clone, which do not have the _rev attribute!
                         return that.saveToExportedStore(messageClone)
                     }).then(() => {
-                        return that.deleteMessageFromTopic(message)
+                        return that.removeMessageFromTopic(message)
                     }).catch((error) => {
                         logger.error(`Exporter.processMessage(): Error "${error}" during storing message=${message}`)
                     })
@@ -122,9 +118,9 @@ class Exporter extends Worker {
      * @param {*} message The message to delete from the data store.
      * @return A promise, which will be fulfilled, as soon as the message is deleted.
      */
-    deleteMessageFromTopic(message) {
-        logger.debug(`Exporter.deleteMessageFromTopic(): message=${message}`)
-        return this.db.delete(message)
+    removeMessageFromTopic(message) {
+        logger.debug(`Exporter.removeMessageFromTopic(): message=${message}`)
+        return this.db.remove(message)
     }
 }
 
