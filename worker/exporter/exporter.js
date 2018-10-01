@@ -4,6 +4,8 @@ const validateConfiguration = require("./validate-configuration")
 const fs = require("fs")
 const path = require("path")
 const logger = require("../../common/logger")
+const Promise = require("promise")
+const PouchDB = require("pouchdb")
 
 /**
  * An exporter will export the messages stored in the database,
@@ -25,13 +27,18 @@ class Exporter extends Worker {
         this.config = config
     }
 
+    initExportedStore(databaseUrl, exportedStore) {
+        this.exportedDb = new PouchDB(`${databaseUrl}/${exportedStore}`)
+    }
+
     /**
      * Starts the exporter. This checks the configured number of millis the queue and
      * will export a message, if this is part of the deal.
      */
     start() {
         const that = this
-        this.init(this.config["database-url"], this.config.topic)
+        this.init(this.config["database-url"], this.config["topic"])
+        this.initExportedStore(this.config["database-url"], this.config["exported-store"])
 
         // Create the export directory, if it didn't exists already.
         if (!fs.existsSync(this.config["export-dir"])) {
@@ -56,15 +63,27 @@ class Exporter extends Worker {
      */
     processMessages(db) {
         logger.debug("Exporter.processMessages()")
+        const that = this
         db.allDocs({include_docs: true})
             .then((result) => {
                 for (let i = 0; i < result.rows.length; i++) {
-                    this.exportMessage(result.rows[i].doc)
+                    let message = result.rows[i].doc
+                    message.toString = () => { return `{_id=${message._id}, _rev=${message._rev}}`}
+                    let messageClone = Object.assign({}, message)
+                    delete messageClone._rev
+                    that.exportMessage(message).then(() => {
+                        // You have to store the clone, which do not have the _rev attribute!
+                        return that.saveToExportedStore(messageClone)
+                    }).then(() => {
+                        return that.deleteMessageFromTopic(message)
+                    }).catch((error) => {
+                        logger.error(`Exporter.processMessage(): Error "${error}" during storing message=${message}`)
+                    })
                 }
             })
             .catch((error) => {
-                logger.error(error)
-                // Move the message to an error folder
+                logger.error(`Exporter.processMessage(): Error "${error}" while processing messages.`)
+                // Move the message to an error store
             })
     }
 
@@ -76,7 +95,36 @@ class Exporter extends Worker {
     exportMessage(message) {
         logger.debug(`Exporter.exportMessage(): ${message}`)
         const fn = path.format({dir: this.config["export-dir"], base: message._id})
-        fs.writeFileSync(fn, JSON.stringify(message))
+        return new Promise((resolve, reject) => {
+            fs.writeFile(fn, JSON.stringify(message), (error, result) => {
+                if (error) {
+                    reject(error)
+                }
+                else {
+                    resolve(result)
+                }
+            })
+        })
+    }
+
+    /**
+     * Save the provided message into the configured exported store.
+     * @param {*} message The message to store.
+     * @return A promise, which will be fulfilled, as soon as the message is saved.
+     */
+    saveToExportedStore(message) {
+        logger.debug(`Exporter.saveToExportedStore(): message=${message}`)
+        return this.exportedDb.put(message)
+    }
+
+    /**
+     * Deletes the message from the topic store.
+     * @param {*} message The message to delete from the data store.
+     * @return A promise, which will be fulfilled, as soon as the message is deleted.
+     */
+    deleteMessageFromTopic(message) {
+        logger.debug(`Exporter.deleteMessageFromTopic(): message=${message}`)
+        return this.db.delete(message)
     }
 }
 

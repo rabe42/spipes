@@ -62,7 +62,12 @@ The `receiver` will accept the connection from a list of hosts. It must validate
 
 # Worker
 ## General
-A worker is configured to read metadata and data from a data store, process the data and mark the data as processed after it finished. To avoid parallel processing of the same data, it must be made sure, that the data is not happening.
+A worker is configured to read metadata and data from a data store, process the data and mark the data as processed after it finished. A major invariant of the system, is that the order of the messages is never violated. Given this, the following cases must be considered in every worker implementation:
+
+1. Different routes of the messages, may result in a non sequential receiving of the messages.
+2. Different size of the messages may result in the availability of a smaller, later message, before a larger earlier message is availabel.
+
+The handling of these cases may be consolidated in a common worker class.
 
 # Forwarder
 ## Node Configuration
@@ -100,10 +105,10 @@ This exports all messages, received for the configured topic and targeted to the
 in the same order, like they were provided on the sender site. Another service, may be used to check, if the message is already exported, or if there is a gap in the sequence of the sequence number of a particular sender.
 
 ## Open Topics
-[ ] Reading just the delta.
-[ ] Moving exported messages to a special done queue.
+[*] Reading just the delta.
+[*] Moving exported messages to a special done queue.
 [ ] Moving non exported messages to a error queue.
-[ ] 
+[ ] Parallel exporting but sequencial remove of the lock file. (Performance)
 
 # Environment
 ## Cryptography
