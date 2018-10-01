@@ -71,3 +71,8 @@ test("should check the folder exists.", () => {
     }
     catch (error) { /* Works as expected. */ }
 })
+
+test("should just setup the connection to the remote database.", () => {
+    const worker = new Worker({"limit": 100})
+    worker.init("https://localhost:5984")
+})
