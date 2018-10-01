@@ -22,7 +22,7 @@ class Worker {
         let databaseLocation = undefined
         logger.debug(`${this.constructor.name}.init(): ${databaseUrl} / ${topic}.`)
         if (this.isRemoteDatabase(databaseUrl)) {
-            databaseLocation = `${databaseLocation}/${topic}`
+            databaseLocation = `${databaseUrl}/${topic}`
         }
         else {
             this.checkLocationExists(databaseUrl)
