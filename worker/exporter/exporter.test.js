@@ -31,6 +31,7 @@ const message3 = {
 }
 
 let transactionDb = undefined
+let exportedDb = undefined
 
 function mkdir(dirName) {
     try {
@@ -42,6 +43,7 @@ function mkdir(dirName) {
 beforeAll((done) => {
     rimraf.sync(config["database-url"])
     mkdir(config["database-url"])
+    exportedDb = new PouchDB(`${config["database-url"]}/${config["exported-store"]}`)
     transactionDb = new PouchDB(`${config["database-url"]}/${config["topic"]}`)
     transactionDb.bulkDocs([message1, message2])
         .then(() => {
@@ -55,8 +57,8 @@ beforeAll((done) => {
 })
 
 afterAll((done) => {
-    rimraf.sync(config["export-dir"])
-    rimraf.sync(config["database-url"])
+    rimraf.sync(config["export-dir"])   // Deletes the exported files from the system.
+    rimraf.sync(config["database-url"]) // Deletes all databases from the system.
     setImmediate(done)
 })
 
@@ -107,6 +109,26 @@ test("should find my content in the 'test-1' file.", () => {
     const fileContent = fs.readFileSync(fn)
     const json = JSON.parse(fileContent)
     expect(json.originator).toBe(message1.originator)
+})
+
+test("should have no elements in the topic store.", (done) => {
+    transactionDb.allDocs().then((result) => {
+        expect(result.rows.length).toBe(0)
+        done()
+    }).catch((error) => {
+        fail(error)
+        done()
+    })
+})
+
+test("should have two elements in the exported queue", (done) => {
+    exportedDb.allDocs().then((result) => {
+        expect(result.rows.length).toBe(2)
+        done()
+    }).catch((error) => {
+        fail(error)
+        done()
+    })
 })
 
 test("should put a new message into the database.", (done) => {
