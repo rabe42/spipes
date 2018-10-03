@@ -29,6 +29,22 @@ const message3 = {
     "topic": "transaction",
     "data": "Third message data"
 }
+const message4 = {
+    _id: "test-4",
+    "originator": "fqdn3.node.name",
+    "destination": "fqdn3.node.name",
+    "content-type": "mime-type",
+    "topic": "transaction",
+    "data": "Third message data"
+}
+const message5 = {
+    _id: "test-5",
+    "originator": "fqdn3.node.name",
+    "destination": "fqdn3.node.name",
+    "content-type": "mime-type",
+    "topic": "transaction",
+    "data": "Third message data"
+}
 
 let transactionDb = undefined
 let exportedDb = undefined
@@ -142,10 +158,46 @@ test("should put a new message into the database.", (done) => {
         })
 })
 
-test("should export a file of a new 'received' message.", (done) => {
+test("should export a file of the new 'received' message.", (done) => {
     setTimeout(() => {
         const fn = path.format({dir: config["export-dir"], base: message3._id})
         expect(fs.existsSync(fn)).toBeTruthy()
+        done()
+    }, config.interval + 100)
+})
+
+test("should put a message with a gap into the database.", (done) => {
+    transactionDb.put(message5).then(() => {
+        done()
+    }).catch((err) => {
+        fail(err)
+        done()
+    })
+})
+
+test("should not export this file, as there is a gap in the sequence.", (done) => {
+    setTimeout(() => {
+        const fn = path.format({dir: config["export-dir"], base: message5._id})
+        expect(fs.existsSync(fn)).toBeFalsy()
+        done()
+    }, config.interval + 100)
+})
+
+test("should put a message which closes the gap into the database.", (done) => {
+    transactionDb.put(message4).then(() => {
+        done()
+    }).catch((err) => {
+        fail(err)
+        done()
+    })
+})
+
+test("should not export this file, as there is a gap in the sequence.", (done) => {
+    setTimeout(() => {
+        const fn4 = path.format({dir: config["export-dir"], base: message4._id})
+        const fn5 = path.format({dir: config["export-dir"], base: message5._id})
+        expect(fs.existsSync(fn4)).toBeTruthy()
+        expect(fs.existsSync(fn5)).toBeTruthy()
         done()
     }, config.interval + 100)
 })

@@ -6,6 +6,7 @@ const path = require("path")
 const logger = require("../../common/logger")
 const Promise = require("promise")
 const PouchDB = require("pouchdb")
+const calculateBookkeepingIds = require("./calculate-bookkeeping-ids")
 
 /**
  * An exporter will export the messages stored in the database,
@@ -28,8 +29,36 @@ class Exporter extends Worker {
     }
 
     /**
+     * This will initialize the book keeping store.
+     */
+    initBookkeepingStore() {
+        const id = `${this.config["topic"]}-${this.config["originator"]}`
+        this.storeIds = calculateBookkeepingIds(this.config)
+        this.bookkeepingDb = new PouchDB(`${this.config["database-url"]}/${id}`)
+        // TODO: How to initialize this bookkeeping (Topic, Originator, Sequence-No.)
+        for (let i=0; i < this.storeIds; i++) {
+            // TODO: Check, if the bookkeeping record already exists
+            this.bookkeepingDb.get(this.storeIds[i]).then(() => {
+
+            })
+            this.bookkeepingDb.put({
+                "_id": this.config.originators[i],
+                "topic": this.config.topic,
+                "sequence-no": 0
+            })
+        }
+    }
+
+    /**
      * Starts the exporter. This checks the configured number of millis the queue and
      * will export a message, if this is part of the deal.
+     * 
+     * TODO: 
+     * The whole data processing must be cut in vertical slices. No broad processing 
+     * of all messages at the same time, but the processing according to originators.
+     * Only in this way it is possible to address the needs of a strict sequencial order
+     * of the exports. The root cause of this is, that we must get the book keeping right
+     * before we start to process the messages.
      */
     start() {
         const that = this
@@ -42,15 +71,41 @@ class Exporter extends Worker {
         }
 
         logger.debug(`Exporter.start(): export-dir="${this.config["export-dir"]}"`)
+        this.initBookkeepingStore(this.config["database-url"], `${this.config["topic"]}-${this.config["id"]}`)
+            .then(() => {
+                // schedule the first look into the database
+                setImmediate(() => {
+                    that.processMessages(that.db)
+                })
+                // schedule the consecutive looks into the database.
+                setInterval(() => {
+                    that.processMessages(that.db)
+                }, this.config.interval)
+            })
+            .catch(() => {
+                logger.error("Exporter.start(): Wasn't able to initialize the book keeping store.")
+            })
+    }
 
-        // schedule the first look into the database
-        setImmediate(() => {
-            that.processMessages(that.db)
+    /**
+     * Processes the messages of a particular origin in the defined order.
+     * @param {string} origin The origin, the message is from.
+     * @param {PouchDB} db A database, where the messages are stored in.
+     */
+    processMessagesFrom(topic, origin, db, bookDB, bookKeepingId) {
+        logger.debug(`Exporter.processMessageFrom(): topic=${topic} origin=${origin}`)
+    }
+
+    getBookkeepingInfo(bookDB, bookKeepingId) {
+        return bookDB.get(bookKeepingId).catch((error) => {
+            logger.info(`Exporter.processMessageFrom(): cannot load book keeping information due to: ${error}. Try to setup new data.`)
+            // TODO: Create a new book keeping record and go forward with the loading of data.
+            // Was mache ich, wenn die Information nicht beschafft werden kann, aufgrund von Konigurationsänderungen.
+            // In diesem Fall wäre es vollkommen normal, dass ich für einige origins bereits einen Book-Keeping-Record hätte und 
+            // für andere noch nicht.
+            // Wie isoliere ich die unterschiedlichen 'verticals' voneinander? Ich muss ja sicherstellen, dass die Datenbank
+            // nicht einfach volläuft, bloß weil an einer Stelle etwas nicht funktioniert?
         })
-        // schedule the consecutive looks into the database.
-        setInterval(() => {
-            that.processMessages(that.db)
-        }, this.config.interval)
     }
 
     /**

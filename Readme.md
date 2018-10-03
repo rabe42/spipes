@@ -58,7 +58,9 @@ The following metadata is expected to be provided in the configuration:
 An incomplete configuration will result in a termination of the services.
 
 ## Functional Description
-The `receiver` will accept the connection from a list of hosts. It must validate that the host is in the list of supported communication partners. Only if this is the case, the content of the meta data will be validated. After the successful validation, the data, including the blob, will be stored into the configured database.
+The `receiver` will accept the connection from a list of hosts. It must validate that the host is in the list of supported communication partners. Only if this is the case, the content of the meta data will be validated. After the successful validation, the data, including the message, will be stored into the configured database.
+
+To make sure, that the sequence can be easilly followed, the following pattern for the _id is used: `${data.topic}-${data.originator}-${data["sequence-no"]}`
 
 # Worker
 ## General
@@ -69,8 +71,8 @@ A worker is configured to read metadata and data from a data store, process the 
 
 The handling of these cases may be consolidated in a common worker class.
 
-# Forwarder
-## Node Configuration
+## Forwarder
+### Node Configuration
 Each forwarder can be configured to communicate the received information to a set of receiving hosts. Each message will be communicated to all hosts.
 A forwarder will read the information of a topic from the database and forward this to the target, if this is part of the configured hosts, or to all configured hosts otherwise. (Flodding)
 To avoid the flodding of the system with the messages, we adopt the strategy from the TCP/IP stack. We count the numbers of hops in the meta information of the message.
@@ -87,24 +89,27 @@ To avoid the flodding of the system with the messages, we adopt the strategy fro
 }
 ```
 
-## Open Topics
+### Open Topics
 [ ] Manage what happen, if the receiving host is not accepting for a configured amount of time/tries.
 [ ] Manage what happen, if all receivers accepted a message.
 [ ] Manage what happen, if all 
 
-# Executor
-## Node Configuration
+## Executor
+### Node Configuration
 This may allow in the future to configure how to work with the different mime-types.
 
-## Open Topics
+### Open Topics
 [ ] Start to refine
 
-# Exporter
-## Overview
-This exports all messages, received for the configured topic and targeted to the receiving system, to export them
-in the same order, like they were provided on the sender site. Another service, may be used to check, if the message is already exported, or if there is a gap in the sequence of the sequence number of a particular sender.
+## Exporter
+### Overview
+This exports all messages, received for the configured topic and targeted to the receiving system, to export them in the same order, like they were provided on the sender site. The exporter is responsible to export the messages in the correct order. No gaps between the different message sequence number of a particular origin is allowed. To make this sure, an exporter should/can be started for each origin.
 
-## Open Topics
+### Initialization
+During the initialization of the exporter, he double check, if a bookkeeping record for the configured originator is present. If this is not the case the lowest sequence number will be fetched from the stored messages. Ohterwise the sequence number in the bookkeeping record will be used.
+
+### Open Topics
+[ ] Retrieving the initial sequence numer.
 [ ] Moving non exported messages to a "error" store.
 [ ] Parallel exporting but sequencial remove of the lock file. (Performance)
 
