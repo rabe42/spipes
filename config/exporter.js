@@ -2,6 +2,8 @@
 
 const configuration = {
     "name": process.env.HOSTNAME || "localhost",
+    "id": process.env.ID || "1",
+    "originators": process.env.ORIGS || ["localhost"],
     "topic": process.env.TOPIC || "transaction",
     "database-url": process.env.DB || "ex-db",
     "limit": process.env.LIMIT || 10,
