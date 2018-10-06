@@ -1,4 +1,3 @@
-/* global setImmediate */
 const Worker = require("../worker")
 const validateConfiguration = require("./validate-configuration")
 const fs = require("fs")
@@ -22,6 +21,9 @@ class Exporter extends Worker {
     constructor(config) {
         super(config)
         validateConfiguration(config)
+        this.init(this.config["database-url"], this.config["topic"])
+        this.initExportedStore(this.config["database-url"], this.config["exported-store"])
+        this.initBookkeepingStore()
     }
 
     initExportedStore(databaseUrl, exportedStore) {
@@ -32,38 +34,49 @@ class Exporter extends Worker {
      * This will initialize the book keeping store.
      */
     initBookkeepingStore() {
-        const id = `${this.config["topic"]}-${this.config["originator"]}`
-        this.storeIds = calculateBookkeepingIds(this.config)
-        this.bookkeepingDb = new PouchDB(`${this.config["database-url"]}/${id}`)
-        // TODO: How to initialize this bookkeeping (Topic, Originator, Sequence-No.)
-        for (let i=0; i < this.storeIds; i++) {
-            // TODO: Check, if the bookkeeping record already exists
-            this.bookkeepingDb.get(this.storeIds[i]).then(() => {
+        this.bookkeepingDb = new PouchDB(`${this.config["database-url"]}/${this.config["topic"]}${this.config["id"]}`)
+        this.bookkeepingInfo = {}
+    }
 
+    /**
+     * Tries to create a new bookkeeping document. If this is not working, it try to retrieve the existing.
+     * @param {PouchDB} bookDB An instance of the database, which stores the bookkeeping information.
+     * @param {string} bookkeepingId An id for the bookkeeping information.
+     * @param {string} originator The source of a message. This information comes with every message.
+     * @returns A promise which resoves with the result from the database.
+     */
+    getBookkeepingInfo(bookDB, bookkeepingId, originator) {
+        const that = this
+        return new Promise((resolve, reject) => {
+            // Try to store the starting book keeping information.
+            bookDB.put({"_id": bookkeepingId, "sequence-no": 0}).then((doc) => {
+                that.bookkeepingInfo[originator] = doc
+                bookDB.get(bookkeepingId).then((doc) => {
+                    resolve(doc)
+                }).catch((error) => {
+                    logger.error(`Exporter.getBookkeepingInfo() Unexpected error in getting new created info: ${error} for bookkeepingId "${bookkeepingId}"`)
+                    reject(error)
+                })
+            }).catch(() => {
+                // If the information cannot be written, try to read it.
+                logger.info(`Exporter.getBookkeepingInfo(): Cannot create bookkeeping information for: "${bookkeepingId}"`)
+                bookDB.get(bookkeepingId).then((doc) => {
+                    that.bookkeepingInfo[originator] = doc
+                    resolve(doc)
+                }).catch((error) => {
+                    logger.error(`Exporter.getBookkeepingInfo(): Cannot retrieve or create bookkeeping informations for: "${bookkeepingId}" due to: "${error}"`)
+                    reject(error)
+                })
             })
-            this.bookkeepingDb.put({
-                "_id": this.config.originators[i],
-                "topic": this.config.topic,
-                "sequence-no": 0
-            })
-        }
+        })
     }
 
     /**
      * Starts the exporter. This checks the configured number of millis the queue and
      * will export a message, if this is part of the deal.
-     * 
-     * TODO: 
-     * The whole data processing must be cut in vertical slices. No broad processing 
-     * of all messages at the same time, but the processing according to originators.
-     * Only in this way it is possible to address the needs of a strict sequencial order
-     * of the exports. The root cause of this is, that we must get the book keeping right
-     * before we start to process the messages.
      */
     start() {
         const that = this
-        this.init(this.config["database-url"], this.config["topic"])
-        this.initExportedStore(this.config["database-url"], this.config["exported-store"])
 
         // Create the export directory, if it didn't exists already.
         if (!fs.existsSync(this.config["export-dir"])) {
@@ -71,41 +84,22 @@ class Exporter extends Worker {
         }
 
         logger.debug(`Exporter.start(): export-dir="${this.config["export-dir"]}"`)
-        this.initBookkeepingStore(this.config["database-url"], `${this.config["topic"]}-${this.config["id"]}`)
+
+        const bookKeepingIds = calculateBookkeepingIds(this.config)
+        const promises = []
+        for (let i = 0; i < bookKeepingIds.length; i++) {
+            promises.push(this.getBookkeepingInfo(this.getBookkeepingDb(), bookKeepingIds[i], this.config["originators"][i]))
+        }
+        Promise.all(promises)
             .then(() => {
-                // schedule the first look into the database
-                setImmediate(() => {
-                    that.processMessages(that.db)
-                })
                 // schedule the consecutive looks into the database.
                 setInterval(() => {
                     that.processMessages(that.db)
                 }, this.config.interval)
             })
-            .catch(() => {
-                logger.error("Exporter.start(): Wasn't able to initialize the book keeping store.")
+            .catch((error) => {
+                logger.error(`Exporter.start(): Wasn't able to initialize the book keeping store due to : "${error}".`)
             })
-    }
-
-    /**
-     * Processes the messages of a particular origin in the defined order.
-     * @param {string} origin The origin, the message is from.
-     * @param {PouchDB} db A database, where the messages are stored in.
-     */
-    processMessagesFrom(topic, origin, db, bookDB, bookKeepingId) {
-        logger.debug(`Exporter.processMessageFrom(): topic=${topic} origin=${origin}`)
-    }
-
-    getBookkeepingInfo(bookDB, bookKeepingId) {
-        return bookDB.get(bookKeepingId).catch((error) => {
-            logger.info(`Exporter.processMessageFrom(): cannot load book keeping information due to: ${error}. Try to setup new data.`)
-            // TODO: Create a new book keeping record and go forward with the loading of data.
-            // Was mache ich, wenn die Information nicht beschafft werden kann, aufgrund von Konigurationsänderungen.
-            // In diesem Fall wäre es vollkommen normal, dass ich für einige origins bereits einen Book-Keeping-Record hätte und 
-            // für andere noch nicht.
-            // Wie isoliere ich die unterschiedlichen 'verticals' voneinander? Ich muss ja sicherstellen, dass die Datenbank
-            // nicht einfach volläuft, bloß weil an einer Stelle etwas nicht funktioniert?
-        })
     }
 
     /**
