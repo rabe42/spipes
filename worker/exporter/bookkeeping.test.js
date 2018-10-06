@@ -37,7 +37,7 @@ test("Should create an exporter.", () => {
 test("Should create a promise.", (done) => {
     const bookkeepingIds = calculateBookkeepingIds(config)
     expect(bookkeepingIds.length).toBe(1)
-    exporter.getBookkeepingInfo(exporter.bookkeepingDb, bookkeepingIds[0], config["originators"][0])
+    exporter.getBookkeepingInfo(bookkeepingIds[0], config["originators"][0])
         .then((doc) => {
             expect(doc["_id"]).toBe(bookkeepingIds[0])
             expect(doc["sequence-no"]).toBe(0)
@@ -47,4 +47,19 @@ test("Should create a promise.", (done) => {
             fail(error)
             done()
         })
+})
+
+test("Should update the bookkeeping information.", (done) => {
+    const bookkeepingIds = calculateBookkeepingIds(config)
+    exporter.updateBookkeepingInfo(config["originators"][0], 100).then(() => {
+        exporter.getBookkeepingInfo(bookkeepingIds[0], config["originators"][0])
+            .then((doc) => {
+                expect(doc["sequence-no"]).toBe(100)
+                done()
+            })
+            .catch((error) => {
+                fail(error)
+                done()
+            })
+    })
 })

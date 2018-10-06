@@ -45,13 +45,13 @@ class Exporter extends Worker {
      * @param {string} originator The source of a message. This information comes with every message.
      * @returns A promise which resoves with the result from the database.
      */
-    getBookkeepingInfo(bookDB, bookkeepingId, originator) {
+    getBookkeepingInfo(bookkeepingId, originator) {
         const that = this
         return new Promise((resolve, reject) => {
             // Try to store the starting book keeping information.
-            bookDB.put({"_id": bookkeepingId, "sequence-no": 0}).then((doc) => {
+            that.bookkeepingDb.put({"_id": bookkeepingId, "sequence-no": 0}).then((doc) => {
                 that.bookkeepingInfo[originator] = doc
-                bookDB.get(bookkeepingId).then((doc) => {
+                that.bookkeepingDb.get(bookkeepingId).then((doc) => {
                     resolve(doc)
                 }).catch((error) => {
                     logger.error(`Exporter.getBookkeepingInfo() Unexpected error in getting new created info: ${error} for bookkeepingId "${bookkeepingId}"`)
@@ -60,13 +60,24 @@ class Exporter extends Worker {
             }).catch(() => {
                 // If the information cannot be written, try to read it.
                 logger.info(`Exporter.getBookkeepingInfo(): Cannot create bookkeeping information for: "${bookkeepingId}"`)
-                bookDB.get(bookkeepingId).then((doc) => {
+                that.bookkeepingDb.get(bookkeepingId).then((doc) => {
                     that.bookkeepingInfo[originator] = doc
                     resolve(doc)
                 }).catch((error) => {
                     logger.error(`Exporter.getBookkeepingInfo(): Cannot retrieve or create bookkeeping informations for: "${bookkeepingId}" due to: "${error}"`)
                     reject(error)
                 })
+            })
+        })
+    }
+
+    updateBookkeepingInfo(originator, sequenceNo) {
+        return new Promise((resolve, reject) => {
+            this.bookkeepingDb.get(`${this.config.topic}-${originator}`).then((doc) => {
+                doc["sequence-no"] = sequenceNo
+                resolve(this.bookkeepingDb.put(doc))
+            }).catch((error) => {
+                reject(error)
             })
         })
     }
@@ -88,7 +99,7 @@ class Exporter extends Worker {
         const bookKeepingIds = calculateBookkeepingIds(this.config)
         const promises = []
         for (let i = 0; i < bookKeepingIds.length; i++) {
-            promises.push(this.getBookkeepingInfo(this.getBookkeepingDb(), bookKeepingIds[i], this.config["originators"][i]))
+            promises.push(this.getBookkeepingInfo(bookKeepingIds[i], this.config["originators"][i]))
         }
         Promise.all(promises)
             .then(() => {
