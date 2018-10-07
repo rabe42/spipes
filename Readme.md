@@ -6,8 +6,7 @@ Provides a http/2 based service for the buffered transfer of arbitrary messages 
 The individual parts of the infrastructure are intended to be so small, that a design isn't needed at all. Everything should be managed on the architecture level.
 
 ### Note
-Resource management is needed for unit and integration tests mainly. Because otherwise the limited database resources are
-blocking other unit tests.
+Testing of different test suites with jest are running in parallel. This results regulary in race conditions on shared ressources. Because of this, the database location and file ressources should be unique in each test suite.
 
 ## Seting up of the development environment
 The whole settings can be influenced by environment variables only. This allows to influence the settings also at runtime. Take a look to the files in the configuration directory to identify the different environment variables.
