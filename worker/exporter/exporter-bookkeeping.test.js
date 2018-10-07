@@ -9,7 +9,7 @@ const config = {
     "id": "1",
     "originators": ["localhost"],
     "topic": "transaction",
-    "database-url": "ex-db",
+    "database-url": "book-db",
     "limit": 10,
     "interval": 500,
     "export-dir": "./export",

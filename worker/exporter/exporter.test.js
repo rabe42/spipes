@@ -57,7 +57,6 @@ function mkdir(dirName) {
 }
 
 beforeAll((done) => {
-    rimraf.sync(config["database-url"])
     mkdir(config["database-url"])
     exportedDb = new PouchDB(`${config["database-url"]}/${config["exported-store"]}`)
     transactionDb = new PouchDB(`${config["database-url"]}/${config["topic"]}`)
@@ -78,36 +77,10 @@ afterAll((done) => {
     setImmediate(done)
 })
 
-test("should throw an error, if the configuration isn't provided.", () => {
-    try {
-        new Exporter()
-        fail()
-    }
-    catch (error) { /* Works as designed. */ }
-})
-
-test("should accept only valid configuration.", () => {
-    const falseConfig = {
-        "name": "a name",
-        "database-url": "db",
-        "export-dir": "./export"    
-    }
-    try {
-        new Exporter(falseConfig)
-        fail()
-    }
-    catch (error) { /* Works as designed */ }
-})
-
-test("should be possible to create an exporter instance.", (done) => {
-    const exporter = new Exporter(config)
-    expect(exporter).toBeDefined()
-    exporter.close().then(done)
-})
-
-const exporter = new Exporter(config)
+let exporter
 
 test("should be possible to get all not exported docs from the database.", () => {
+    exporter = new Exporter(config)
     exporter.start()
 })
 
