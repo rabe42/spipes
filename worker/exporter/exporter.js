@@ -103,10 +103,12 @@ class Exporter extends Worker {
         }
         Promise.all(promises)
             .then(() => {
+                // TODO: For each originator setup a separate interfall to process the messages.
                 // schedule the consecutive looks into the database.
-                setInterval(() => {
-                    that.processMessages(that.db)
-                }, this.config.interval)
+                const originators = that.config["originators"]
+                for (let i = 0; i < originators.length; i++) {
+                    that.processMessages(originators)
+                }
             })
             .catch((error) => {
                 logger.error(`Exporter.start(): Wasn't able to initialize the book keeping store due to : "${error}".`)
@@ -114,16 +116,24 @@ class Exporter extends Worker {
     }
 
     /**
-     * Process the messages from the database in the sequence of their Ids.
-     * @param {PouchDB} db The database which will provide the messages.
+     * Calculates the id of the bookkeeping record of an particular originator.
+     * @param {string} originator The originator of a message.
      */
-    processMessages(db) {
-        logger.debug("Exporter.processMessages()")
+    calculateBookkeeptingId(originator) {
+        return `${this.config.topic}-${originator}`
+    }
+
+    /**
+     * Loads the next message, if available.
+     * @param {string} originator The database which will provide the messages.
+     */
+    processMessages(originator) {
+        logger.debug(`Exporter.processMessages() for originator: ${originator}`)
         const that = this
-        db.allDocs({include_docs: true})
-            .then((result) => {
-                for (let i = 0; i < result.rows.length; i++) {
-                    let message = result.rows[i].doc
+        return this.getBookkeepingInfo(this.calculateBookkeeptingId(originator), originator)
+            .then((info) => {
+                const sequenceNo = info["sequence-no"] + 1
+                that.db.get(`${this.config.target}-${originator}-${sequenceNo}`).then((message) => {
                     message.toString = () => { return `{_id=${message._id}, _rev=${message._rev}}`}
                     let messageClone = Object.assign({}, message)
                     delete messageClone._rev
@@ -132,15 +142,48 @@ class Exporter extends Worker {
                         return that.saveToExportedStore(messageClone)
                     }).then(() => {
                         return that.removeMessageFromTopic(message)
-                    }).catch((error) => {
-                        logger.error(`Exporter.processMessage(): Error "${error}" during storing message=${message}`)
+                    }).then(() => {
+                        return that.processMessages(originator)
                     })
-                }
+                }).catch((error) => {
+                    // Message couldn't be retrieved --> Wait for some millis.
+                    logger.debug(`Exporter.processMessages(): Wait for new message for "${originator}" due to: "${error}"`)
+                    return this.waitForNextMessage(originator)
+                })
             })
-            .catch((error) => {
-                logger.error(`Exporter.processMessage(): Error "${error}" while processing messages.`)
-                // Move the message to an error store
-            })
+        // this.db.allDocs({include_docs: true})
+        //     .then((result) => {
+        //         for (let i = 0; i < result.rows.length; i++) {
+        //             let message = result.rows[i].doc
+        //             message.toString = () => { return `{_id=${message._id}, _rev=${message._rev}}`}
+        //             let messageClone = Object.assign({}, message)
+        //             delete messageClone._rev
+        //             that.exportMessage(message).then(() => {
+        //                 // You have to store the clone, which do not have the _rev attribute!
+        //                 return that.saveToExportedStore(messageClone)
+        //             }).then(() => {
+        //                 return that.removeMessageFromTopic(message)
+        //             }).catch((error) => {
+        //                 logger.error(`Exporter.processMessage(): Error "${error}" during storing message=${message}`)
+        //             })
+        //         }
+        //     })
+        //     .catch((error) => {
+        //         logger.error(`Exporter.processMessage(): Error "${error}" while processing messages.`)
+        //         // Move the message to an error store
+        //     })
+    }
+
+    /**
+     * Wait for the next message, until the configured timeout is up.
+     * @param {string} originator The originator to process messages from.
+     */
+    waitForNextMessage(originator) {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve(this.processMessages(originator)) // FIXME: Hier muss ich auf jeden Fall noch einmal ran!
+            }, this.config["interval"])
+        })
     }
 
     /**
