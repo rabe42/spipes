@@ -46,8 +46,9 @@ const message5 = {
     "data": "Third message data"
 }
 
-let transactionDb = undefined
-let exportedDb = undefined
+let exporter, 
+    transactionDb,
+    exportedDb
 
 function mkdir(dirName) {
     try {
@@ -76,8 +77,6 @@ afterAll((done) => {
     rimraf.sync(config["database-url"]) // Deletes all databases from the system.
     setImmediate(done)
 })
-
-let exporter
 
 test("should be possible to get all not exported docs from the database.", () => {
     exporter = new Exporter(config)
