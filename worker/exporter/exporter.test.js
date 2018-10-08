@@ -87,9 +87,9 @@ test("should have files in the export-dir.", (done) => {
     expect(fs.existsSync(config["export-dir"])).toBeTruthy()
     setTimeout(() => {
         const directory = fs.readdirSync(config["export-dir"])
-        expect(directory.length >= 2).toBeTruthy() // Minimum "test-1", "test-2"
+        expect(directory.length).toBe(2) // Minimum "test-1", "test-2"
         done()
-    }, config.interval + 100)
+    }, config.interval * 2)
 })
 
 test("should find my content in the 'test-1' file.", () => {

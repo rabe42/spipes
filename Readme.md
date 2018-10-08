@@ -105,7 +105,10 @@ This may allow in the future to configure how to work with the different mime-ty
 This exports all messages, received for the configured topic and targeted to the receiving system, to export them in the same order, like they were provided on the sender site. The exporter is responsible to export the messages in the correct order. No gaps between the different message sequence number of a particular origin is allowed. To make this sure, an exporter should/can be started for each origin.
 
 ### Initialization
-During the initialization of the exporter, he double check, if a bookkeeping record for the configured originator is present. If this is not the case the lowest sequence number will be fetched from the stored messages. Ohterwise the sequence number in the bookkeeping record will be used.
+During the initialization of the exporter he checks, if a bookkeeping record for the configured originator is present. If this is not the case the lowest sequence number will be assumed as 0. Otherwise the sequence number in the bookkeeping record will be used.
+
+### Implementation Remarks
+The algorithm uses havily promisses. This allows to run the exporter in a non blocking mode with the highest prossible processing rate of a single threaded system. To ballance and right size the horizontal scaling, a number of performance tests must be planned.
 
 ### Open Topics
 [ ] Retrieving the initial sequence numer.

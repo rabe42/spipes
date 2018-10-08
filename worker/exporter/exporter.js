@@ -177,11 +177,12 @@ class Exporter extends Worker {
     /**
      * Wait for the next message, until the configured timeout is up.
      * @param {string} originator The originator to process messages from.
+     * @returns A promise, which resolves with a promise of the processMessages() after the configured interval period.
      */
     waitForNextMessage(originator) {
         return new Promise((resolve) => {
             setTimeout(() => {
-                resolve(this.processMessages(originator)) // FIXME: Hier muss ich auf jeden Fall noch einmal ran!
+                resolve(this.processMessages(originator))
             }, this.config["interval"])
         })
     }
@@ -190,6 +191,7 @@ class Exporter extends Worker {
      * Makes sure, that the current file is writen in an synchronous way. This means only after
      * the file is written to the file system, the function will return.
      * @param {any} message The message stored in the database.
+     * @returns A promise, which resolves with the status of the file operation.
      */
     exportMessage(message) {
         logger.debug(`Exporter.exportMessage(): ${message}`)
