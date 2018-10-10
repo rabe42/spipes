@@ -46,21 +46,25 @@ class Exporter extends Worker {
      * @returns A promise which resoves with the result from the database.
      */
     getBookkeepingInfo(bookkeepingId, originator) {
+        logger.debug(`Exporter.getBookeepingInfo(): for="${bookkeepingId}" from=${originator}`)
         const that = this
         return new Promise((resolve, reject) => {
             // Try to store the starting book keeping information.
             that.bookkeepingDb.put({"_id": bookkeepingId, "sequence-no": 0}).then((doc) => {
+                logger.info(`Exporter.getBookkeepingInfo(): Created bookkeeping information for "${bookkeepingId}"`)
                 that.bookkeepingInfo[originator] = doc
                 that.bookkeepingDb.get(bookkeepingId).then((doc) => {
+                    logger.debug(`Exporter.getBookkeepingInfo(): Retrieved new bookkeeping information from database: ${doc}`)
                     resolve(doc)
                 }).catch((error) => {
-                    logger.error(`Exporter.getBookkeepingInfo() Unexpected error in getting new created info: ${error} for bookkeepingId "${bookkeepingId}"`)
+                    logger.error(`Exporter.getBookkeepingInfo(): Unexpected error in getting new created info: ${error} for bookkeepingId "${bookkeepingId}"`)
                     reject(error)
                 })
             }).catch(() => {
                 // If the information cannot be written, try to read it.
-                logger.info(`Exporter.getBookkeepingInfo(): Cannot create bookkeeping information for: "${bookkeepingId}"`)
+                logger.info(`Exporter.getBookkeepingInfo(): Cannot create bookkeeping information for: "${bookkeepingId}" trying to get it.`)
                 that.bookkeepingDb.get(bookkeepingId).then((doc) => {
+                    logger.info(`Exporter.getBookkeepingInfo(): got bookkeeping info for "${bookkeepingId}"!`)
                     that.bookkeepingInfo[originator] = doc
                     resolve(doc)
                 }).catch((error) => {
@@ -71,15 +75,38 @@ class Exporter extends Worker {
         })
     }
 
+    /**
+     * Updates the bookkeeping record of a particular originator.
+     * @param {string} originator The originator of the message.
+     * @param {number} sequenceNo The sequence number to be written to the record.
+     * @returns A promise, which will be resolved on success.
+     */
     updateBookkeepingInfo(originator, sequenceNo) {
+        logger.debug(`Exporter.updateBookkeepingInfo() originator=${originator} seq-no=${sequenceNo}`)
         return new Promise((resolve, reject) => {
             this.bookkeepingDb.get(`${this.config.topic}-${originator}`).then((doc) => {
                 doc["sequence-no"] = sequenceNo
+                logger.debug(`Exporter.updateBookkeepingInfo() updating to sequenceNo=${sequenceNo}`)
                 resolve(this.bookkeepingDb.put(doc))
             }).catch((error) => {
+                logger.error(`Exporter.updateBookkeepingInfo(): Cannot update bookkeeping information for: ${originator} due to: ${error}`)
                 reject(error)
             })
         })
+    }
+
+    /**
+     * @returns An array of promises, which are resolved, if the bookkeeping can be initialized.
+     */
+    initiateBookkeeping() {
+        logger.debug("Exporter.initiateBookkeeping()")
+        const bookKeepingIds = calculateBookkeepingIds(this.config)
+        const promises = []
+        for (let i = 0; i < bookKeepingIds.length; i++) {
+            promises.push(this.getBookkeepingInfo(bookKeepingIds[i], this.config["originators"][i]))
+        }
+        logger.debug(`Exporter.initiateBookkeeping(): Number of records: ${promises.length}`)
+        return promises
     }
 
     /**
@@ -87,31 +114,27 @@ class Exporter extends Worker {
      * will export a message, if this is part of the deal.
      */
     start() {
+        logger.debug("Exporter.start()")
         const that = this
 
         // Create the export directory, if it didn't exists already.
         if (!fs.existsSync(this.config["export-dir"])) {
+            logger.debug(`Exporter.start(): creating export directory ${this.config["export-dir"]}`)
             fs.mkdirSync(this.config["export-dir"])
         }
 
-        logger.debug(`Exporter.start(): export-dir="${this.config["export-dir"]}"`)
-
-        const bookKeepingIds = calculateBookkeepingIds(this.config)
-        const promises = []
-        for (let i = 0; i < bookKeepingIds.length; i++) {
-            promises.push(this.getBookkeepingInfo(bookKeepingIds[i], this.config["originators"][i]))
-        }
-        Promise.all(promises)
+        Promise.all(this.initiateBookkeeping())
             .then(() => {
                 // TODO: For each originator setup a separate interfall to process the messages.
                 // schedule the consecutive looks into the database.
+                logger.debug("Exporter.start(): starting processing...")
                 const originators = that.config["originators"]
                 for (let i = 0; i < originators.length; i++) {
                     that.processMessages(originators)
                 }
             })
             .catch((error) => {
-                logger.error(`Exporter.start(): Wasn't able to initialize the book keeping store due to : "${error}".`)
+                logger.error(`Exporter.start(): Wasn't able to initialize the bookkeeping store due to : "${error}".`)
             })
     }
 
@@ -123,6 +146,9 @@ class Exporter extends Worker {
         return `${this.config.topic}-${originator}`
     }
 
+    calculateMessageId(originator, sequenceNo) {
+        return `${this.config.topic}-${originator}-${sequenceNo}`
+    }
     /**
      * Loads the next message, if available.
      * @param {string} originator The database which will provide the messages.
@@ -130,14 +156,20 @@ class Exporter extends Worker {
     processMessages(originator) {
         logger.debug(`Exporter.processMessages() for originator: ${originator}`)
         const that = this
-        return this.getBookkeepingInfo(this.calculateBookkeeptingId(originator), originator)
+        return that.getBookkeepingInfo(that.calculateBookkeeptingId(originator), originator)
             .then((info) => {
+                logger.debug(`Exporter.processMessages(): Got bookkeeping info seq-no:${info["sequence-no"]}`)
                 const sequenceNo = info["sequence-no"] + 1
-                that.db.get(`${this.config.target}-${originator}-${sequenceNo}`).then((message) => {
+                const messageId = that.calculateMessageId(originator, sequenceNo)
+                logger.debug(`Exporter.processMessage() Getting message id="${messageId}"`)
+                that.db.get(messageId).then((message) => {
                     message.toString = () => { return `{_id=${message._id}, _rev=${message._rev}}`}
+                    logger.debug(`Exporter.processMessage(): Got message ${message}`)
                     let messageClone = Object.assign({}, message)
                     delete messageClone._rev
                     that.exportMessage(message).then(() => {
+                        return that.updateBookkeepingInfo(originator, sequenceNo)
+                    }).then(() => {
                         // You have to store the clone, which do not have the _rev attribute!
                         return that.saveToExportedStore(messageClone)
                     }).then(() => {
@@ -147,31 +179,10 @@ class Exporter extends Worker {
                     })
                 }).catch((error) => {
                     // Message couldn't be retrieved --> Wait for some millis.
-                    logger.debug(`Exporter.processMessages(): Wait for new message for "${originator}" due to: "${error}"`)
-                    return this.waitForNextMessage(originator)
+                    logger.debug(`Exporter.processMessages(): Wait for new message "${originator}" due to: "${error}"`)
+                    return that.waitForNextMessage(originator)
                 })
             })
-        // this.db.allDocs({include_docs: true})
-        //     .then((result) => {
-        //         for (let i = 0; i < result.rows.length; i++) {
-        //             let message = result.rows[i].doc
-        //             message.toString = () => { return `{_id=${message._id}, _rev=${message._rev}}`}
-        //             let messageClone = Object.assign({}, message)
-        //             delete messageClone._rev
-        //             that.exportMessage(message).then(() => {
-        //                 // You have to store the clone, which do not have the _rev attribute!
-        //                 return that.saveToExportedStore(messageClone)
-        //             }).then(() => {
-        //                 return that.removeMessageFromTopic(message)
-        //             }).catch((error) => {
-        //                 logger.error(`Exporter.processMessage(): Error "${error}" during storing message=${message}`)
-        //             })
-        //         }
-        //     })
-        //     .catch((error) => {
-        //         logger.error(`Exporter.processMessage(): Error "${error}" while processing messages.`)
-        //         // Move the message to an error store
-        //     })
     }
 
     /**
@@ -180,10 +191,12 @@ class Exporter extends Worker {
      * @returns A promise, which resolves with a promise of the processMessages() after the configured interval period.
      */
     waitForNextMessage(originator) {
+        const that = this
+        logger.debug(`Exporter.waitForNextMessage(): originator=${originator}`)
         return new Promise((resolve) => {
             setTimeout(() => {
-                resolve(this.processMessages(originator))
-            }, this.config["interval"])
+                resolve(that.processMessages(originator))
+            }, that.config["interval"])
         })
     }
 

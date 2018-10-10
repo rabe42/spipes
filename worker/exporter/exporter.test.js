@@ -6,7 +6,7 @@ const PouchDB = require("pouchdb")
 const Exporter = require("./exporter")
 const config = require("../../config/exporter")
 const message1 = {
-    _id: "test-1",
+    _id: "transaction-localhost-1",
     "originator": "fqdn1.node.name",
     "destination": "fqdn1.node.name",
     "content-type": "mime-type",
@@ -14,7 +14,7 @@ const message1 = {
     "data": "First message data"
 }
 const message2 = {
-    _id: "test-2",
+    _id: "transaction-localhost-2",
     "originator": "fqdn2.node.name",
     "destination": "fqdn2.node.name",
     "content-type": "mime-type",
@@ -22,7 +22,7 @@ const message2 = {
     "data": "Second message data"
 }
 const message3 = {
-    _id: "test-3",
+    _id: "transaction-localhost-3",
     "originator": "fqdn3.node.name",
     "destination": "fqdn3.node.name",
     "content-type": "mime-type",
@@ -30,7 +30,7 @@ const message3 = {
     "data": "Third message data"
 }
 const message4 = {
-    _id: "test-4",
+    _id: "transaction-localhost-4",
     "originator": "fqdn3.node.name",
     "destination": "fqdn3.node.name",
     "content-type": "mime-type",
@@ -38,7 +38,7 @@ const message4 = {
     "data": "Third message data"
 }
 const message5 = {
-    _id: "test-5",
+    _id: "transaction-localhost-5",
     "originator": "fqdn3.node.name",
     "destination": "fqdn3.node.name",
     "content-type": "mime-type",
