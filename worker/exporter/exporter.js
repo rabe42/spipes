@@ -26,6 +26,9 @@ class Exporter extends Worker {
         this.initBookkeepingStore()
     }
 
+    /**
+     * Creates the database for the store, where the exported messages should be stored.
+     */
     initExportedStore(databaseUrl, exportedStore) {
         this.exportedDb = new PouchDB(`${databaseUrl}/${exportedStore}`)
     }
@@ -96,7 +99,7 @@ class Exporter extends Worker {
     }
 
     /**
-     * @returns An array of promises, which are resolved, if the bookkeeping can be initialized.
+     * @returns A promise, which is resolved, if the bookkeeping can be initialized for all originators.
      */
     initiateBookkeeping() {
         logger.debug("Exporter.initiateBookkeeping()")
@@ -106,7 +109,19 @@ class Exporter extends Worker {
             promises.push(this.getBookkeepingInfo(bookKeepingIds[i], this.config["originators"][i]))
         }
         logger.debug(`Exporter.initiateBookkeeping(): Number of records: ${promises.length}`)
-        return promises
+        return Promise.all(promises)
+    }
+
+    /**
+     * For each originator setup a separate interfall to process the messages.
+     * schedule the consecutive looks into the database.
+     */
+    startProcessMessages() {
+        logger.debug("Exporter.start(): starting processing...")
+        const originators = this.config["originators"]
+        for (let i = 0; i < originators.length; i++) {
+            this.processMessages(originators)
+        }
     }
 
     /**
@@ -123,15 +138,9 @@ class Exporter extends Worker {
             fs.mkdirSync(this.config["export-dir"])
         }
 
-        Promise.all(this.initiateBookkeeping())
+        this.initiateBookkeeping()
             .then(() => {
-                // TODO: For each originator setup a separate interfall to process the messages.
-                // schedule the consecutive looks into the database.
-                logger.debug("Exporter.start(): starting processing...")
-                const originators = that.config["originators"]
-                for (let i = 0; i < originators.length; i++) {
-                    that.processMessages(originators)
-                }
+                that.startProcessMessages()
             })
             .catch((error) => {
                 logger.error(`Exporter.start(): Wasn't able to initialize the bookkeeping store due to : "${error}".`)
