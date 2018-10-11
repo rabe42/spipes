@@ -33,11 +33,10 @@ class Exporter extends Worker {
     }
 
     /**
-     * This will initialize the book keeping store.
+     * This will create the book keeping store.
      */
     initBookkeepingStore() {
         this.bookkeepingDb = new PouchDB(`${this.config["database-url"]}/${this.config["topic"]}${this.config["id"]}`)
-        this.bookkeepingInfo = {}
     }
 
     /**
@@ -45,7 +44,7 @@ class Exporter extends Worker {
      * @param {PouchDB} bookDB An instance of the database, which stores the bookkeeping information.
      * @param {string} bookkeepingId An id for the bookkeeping information.
      * @param {string} originator The source of a message. This information comes with every message.
-     * @returns A promise which resoves with the result from the database.
+     * @returns {Promise} A promise which resoves with the result from the database.
      */
     getBookkeepingInfo(bookkeepingId, originator) {
         logger.debug(`Exporter.getBookeepingInfo(): for="${bookkeepingId}" from=${originator}`)
@@ -54,7 +53,6 @@ class Exporter extends Worker {
             // Try to store the starting book keeping information.
             that.bookkeepingDb.put({"_id": bookkeepingId, "sequence-no": 0}).then((doc) => {
                 logger.info(`Exporter.getBookkeepingInfo(): Created bookkeeping information for "${bookkeepingId}"`)
-                that.bookkeepingInfo[originator] = doc
                 that.bookkeepingDb.get(bookkeepingId).then((doc) => {
                     logger.debug(`Exporter.getBookkeepingInfo(): Retrieved new bookkeeping information from database: ${doc}`)
                     resolve(doc)
@@ -67,7 +65,6 @@ class Exporter extends Worker {
                 logger.info(`Exporter.getBookkeepingInfo(): Cannot create bookkeeping information for: "${bookkeepingId}" trying to get it.`)
                 that.bookkeepingDb.get(bookkeepingId).then((doc) => {
                     logger.info(`Exporter.getBookkeepingInfo(): got bookkeeping info for "${bookkeepingId}"!`)
-                    that.bookkeepingInfo[originator] = doc
                     resolve(doc)
                 }).catch((error) => {
                     logger.error(`Exporter.getBookkeepingInfo(): Cannot retrieve or create bookkeeping informations for: "${bookkeepingId}" due to: "${error}"`)
@@ -81,7 +78,7 @@ class Exporter extends Worker {
      * Updates the bookkeeping record of a particular originator.
      * @param {string} originator The originator of the message.
      * @param {number} sequenceNo The sequence number to be written to the record.
-     * @returns A promise, which will be resolved on success.
+     * @returns {Promise} A promise, which will be resolved on success.
      */
     updateBookkeepingInfo(originator, sequenceNo) {
         logger.debug(`Exporter.updateBookkeepingInfo() originator=${originator} seq-no=${sequenceNo}`)
@@ -98,7 +95,7 @@ class Exporter extends Worker {
     }
 
     /**
-     * @returns A promise, which is resolved, if the bookkeeping can be initialized for all originators.
+     * @returns {Promise} A promise, which is resolved, if the bookkeeping can be initialized for all originators.
      */
     initiateBookkeeping() {
         logger.debug("Exporter.initiateBookkeeping()")
@@ -182,8 +179,11 @@ class Exporter extends Worker {
     }
 
     /**
-     * Loads the next message, if available.
+     * Loads the next message, if available and immediately starts the load of the next message. 
+     * If no message is available, a the processing of the next message is scheduled after the configured
+     * timeinterval.
      * @param {string} originator The database which will provide the messages.
+     * @returns {Promise} A promise, which is resolved, if the messages are all read.
      */
     processMessages(originator) {
         logger.debug(`Exporter.processMessages() for originator: ${originator}`)
@@ -220,7 +220,7 @@ class Exporter extends Worker {
     /**
      * Wait for the next message, until the configured timeout is up.
      * @param {string} originator The originator to process messages from.
-     * @returns A promise, which resolves with a promise of the processMessages() after the configured interval period.
+     * @returns {Promise} A promise, which resolves with a promise of the processMessages() after the configured interval period.
      */
     waitForNextMessage(originator) {
         const that = this
@@ -236,7 +236,7 @@ class Exporter extends Worker {
      * Makes sure, that the current file is writen in an synchronous way. This means only after
      * the file is written to the file system, the function will return.
      * @param {any} message The message stored in the database.
-     * @returns A promise, which resolves with the status of the file operation.
+     * @returns {Promise} A promise, which resolves with the status of the file operation.
      */
     exportMessage(message) {
         logger.debug(`Exporter.exportMessage(): ${message}`)
@@ -256,7 +256,7 @@ class Exporter extends Worker {
     /**
      * Save the provided message into the configured exported store.
      * @param {*} message The message to store.
-     * @return A promise, which will be fulfilled, as soon as the message is saved.
+     * @return {Promise} A promise, which will be fulfilled, as soon as the message is saved.
      */
     saveToExportedStore(message) {
         logger.debug(`Exporter.saveToExportedStore(): message=${message}`)
@@ -266,7 +266,7 @@ class Exporter extends Worker {
     /**
      * Deletes the message from the topic store.
      * @param {*} message The message to delete from the data store.
-     * @return A promise, which will be fulfilled, as soon as the message is deleted.
+     * @return {Promise} A promise, which will be fulfilled, as soon as the message is deleted.
      */
     removeMessageFromTopic(message) {
         logger.debug(`Exporter.removeMessageFromTopic(): message=${message}`)
