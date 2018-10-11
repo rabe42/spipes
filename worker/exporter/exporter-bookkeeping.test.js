@@ -30,7 +30,6 @@ afterAll((done) => {
 test("Should create an exporter.", () => {
     exporter = new Exporter(config)
     expect(exporter).toBeDefined()
-    expect(exporter.bookkeepingInfo).toEqual({})
     expect(exporter.bookkeepingDb).toBeDefined()
 })
 

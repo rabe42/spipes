@@ -51,7 +51,7 @@ class Exporter extends Worker {
         const that = this
         return new Promise((resolve, reject) => {
             // Try to store the starting book keeping information.
-            that.bookkeepingDb.put({"_id": bookkeepingId, "sequence-no": 0}).then((doc) => {
+            that.bookkeepingDb.put({"_id": bookkeepingId, "sequence-no": 0}).then(() => {
                 logger.info(`Exporter.getBookkeepingInfo(): Created bookkeeping information for "${bookkeepingId}"`)
                 that.bookkeepingDb.get(bookkeepingId).then((doc) => {
                     logger.debug(`Exporter.getBookkeepingInfo(): Retrieved new bookkeeping information from database: ${doc}`)
