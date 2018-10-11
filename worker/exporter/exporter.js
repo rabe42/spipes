@@ -5,7 +5,6 @@ const path = require("path")
 const logger = require("../../common/logger")
 const Promise = require("promise")
 const PouchDB = require("pouchdb")
-const calculateBookkeepingIds = require("./calculate-bookkeeping-ids")
 
 /**
  * An exporter will export the messages stored in the database,
@@ -103,7 +102,7 @@ class Exporter extends Worker {
      */
     initiateBookkeeping() {
         logger.debug("Exporter.initiateBookkeeping()")
-        const bookKeepingIds = calculateBookkeepingIds(this.config)
+        const bookKeepingIds = this.calculateBookkeepingIds(this.config)
         const promises = []
         for (let i = 0; i < bookKeepingIds.length; i++) {
             promises.push(this.getBookkeepingInfo(bookKeepingIds[i], this.config["originators"][i]))
@@ -150,14 +149,38 @@ class Exporter extends Worker {
     /**
      * Calculates the id of the bookkeeping record of an particular originator.
      * @param {string} originator The originator of a message.
+     * @returns {string} The identifier of the bookkeeping record.
      */
     calculateBookkeeptingId(originator) {
         return `${this.config.topic}-${originator}`
     }
 
+    /**
+     * @returns {string[]} An array of bookkeeping identifiers.
+     */
+    calculateBookkeepingIds() {
+        let result = []
+        const originators = this.config.originators
+        if (originators) {
+            for (let i = 0; i < this.config.originators.length; i++) {
+                result.push(this.calculateBookkeeptingId(originators[i]))
+            }
+        }
+        return result
+    }
+
+    /**
+     * @param {string} originator The originator of a message.
+     * @param {number} A sequence number.
+     * @returns {string} The message Id, calculated from the available information.
+     */
     calculateMessageId(originator, sequenceNo) {
+        if (isNaN(sequenceNo)) {
+            throw new Error(`Exporter.calcuateMessageId(): The provided seqenceNo="${sequenceNo}" is not a number!`)
+        }
         return `${this.config.topic}-${originator}-${sequenceNo}`
     }
+
     /**
      * Loads the next message, if available.
      * @param {string} originator The database which will provide the messages.
