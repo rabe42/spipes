@@ -2,7 +2,6 @@
 const fs = require("fs")
 const rimraf = require("rimraf")
 const Exporter = require("./exporter")
-const calculateBookkeepingIds = require("./calculate-bookkeeping-ids")
 
 const config = {
     "name": "localhost",
@@ -34,7 +33,7 @@ test("Should create an exporter.", () => {
 })
 
 test("Should create a promise.", (done) => {
-    const bookkeepingIds = calculateBookkeepingIds(config)
+    const bookkeepingIds = exporter.calculateBookkeepingIds()
     expect(bookkeepingIds.length).toBe(1)
     exporter.getBookkeepingInfo(bookkeepingIds[0], config["originators"][0])
         .then((doc) => {
@@ -49,7 +48,7 @@ test("Should create a promise.", (done) => {
 })
 
 test("Should update the bookkeeping information.", (done) => {
-    const bookkeepingIds = calculateBookkeepingIds(config)
+    const bookkeepingIds = exporter.calculateBookkeepingIds()
     exporter.updateBookkeepingInfo(config["originators"][0], 100).then(() => {
         exporter.getBookkeepingInfo(bookkeepingIds[0], config["originators"][0])
             .then((doc) => {
