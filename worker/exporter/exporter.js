@@ -167,18 +167,6 @@ class Exporter extends Worker {
     }
 
     /**
-     * @param {string} originator The originator of a message.
-     * @param {number} A sequence number.
-     * @returns {string} The message Id, calculated from the available information.
-     */
-    calculateMessageId(originator, sequenceNo) {
-        if (isNaN(sequenceNo)) {
-            throw new Error(`Exporter.calcuateMessageId(): The provided seqenceNo="${sequenceNo}" is not a number!`)
-        }
-        return `${this.config.topic}-${originator}-${sequenceNo}`
-    }
-
-    /**
      * Loads the next message, if available and immediately starts the load of the next message. 
      * If no message is available, a the processing of the next message is scheduled after the configured
      * timeinterval.

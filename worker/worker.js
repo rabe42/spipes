@@ -53,6 +53,18 @@ class Worker {
     }
 
     /**
+     * @param {string} originator The originator of a message.
+     * @param {number} A sequence number.
+     * @returns {string} The message Id, calculated from the available information.
+     */
+    calculateMessageId(originator, sequenceNo) {
+        if (isNaN(sequenceNo)) {
+            throw new Error(`Exporter.calcuateMessageId(): The provided seqenceNo="${sequenceNo}" is not a number!`)
+        }
+        return `${this.config.topic}-${originator}-${sequenceNo}`
+    }
+
+    /**
      * Closes all resources and frees them for further use.
      * @returns The promise of the close.
      */

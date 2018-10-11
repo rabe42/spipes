@@ -76,3 +76,17 @@ test("should just setup the connection to the remote database.", () => {
     const worker = new Worker({"limit": 100})
     worker.init("https://localhost:5984")
 })
+
+test("should create a message id.", () => {
+    const worker = new Worker({"topic": "topic"})
+    expect(worker.calculateMessageId("here", 0)).toBe("topic-here-0")
+})
+
+test("should throw an exception, if the sequence number is ommited.", () => {
+    const worker = new Worker({"topic": "topic"})
+    try {
+        worker.calculateMessageId("here")
+        fail()
+    }
+    catch (error) { /* Works as expected! */}
+})
