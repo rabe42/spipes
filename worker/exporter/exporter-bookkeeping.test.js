@@ -63,8 +63,17 @@ test("Should update the bookkeeping information.", (done) => {
     })
 })
 
+test("should fail to update the bookkeeping information.", (done) => {
+    exporter.bookkeepingDb = new DbMock(false)
+    exporter.updateBookkeepingInfo("Don't care!", 1).then(() => {
+        fail()
+        done()
+    }).catch(() => {
+        done()
+    })
+})
+
 test("should fail to start the exporter, if the bookkeeping cannot be successfully initialized.", (done) => {
-    // TODO: Ich muss es erreichen, dass die Bookkeeping Information nicht gelesen und angelegt werden kann.
     exporter.bookkeepingDb = new DbMock(false, done)
     exporter.start()
 })
