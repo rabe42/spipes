@@ -23,6 +23,7 @@ class Exporter extends Worker {
         this.init(this.config["database-url"], this.config["topic"])
         this.initExportedStore(this.config["database-url"], this.config["exported-store"])
         this.initBookkeepingStore()
+        this.started = false
     }
 
     /**
@@ -51,6 +52,9 @@ class Exporter extends Worker {
         const that = this
         return new Promise((resolve, reject) => {
             // Try to store the starting book keeping information.
+            if (!that.bookkeepingDb) {
+                reject(new Error("No bookkeeping database initialized!"))
+            }
             that.bookkeepingDb.put({"_id": bookkeepingId, "sequence-no": 0}).then(() => {
                 logger.info(`Exporter.getBookkeepingInfo(): Created bookkeeping information for "${bookkeepingId}"`)
                 that.bookkeepingDb.get(bookkeepingId).then((doc) => {
@@ -137,9 +141,11 @@ class Exporter extends Worker {
         this.initiateBookkeeping()
             .then(() => {
                 that.startProcessMessages()
+                that.started = true
             })
             .catch((error) => {
                 logger.error(`Exporter.start(): Wasn't able to initialize the bookkeeping store due to : "${error}".`)
+                that.started = false
             })
     }
 

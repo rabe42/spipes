@@ -1,9 +1,9 @@
-/* global afterAll test expect setImmediate */
+/* global afterAll test expect */
 
 const config = require("../../config/receiver")
 const Receiver = require("./receiver")
 const streamMock = require("./http2-stream-mock")
-const Promise = require("promise")
+const DbMock = require("../../tests/mocks/DbMock")
 
 const correctDoc = {
     originator: "::1",
@@ -12,33 +12,6 @@ const correctDoc = {
     "content-type": "text/plain",
     topic: "transaction",
     data: "This is the end!"
-}
-
-class DBMock {
-    constructor(isSuccess, doneFctn) {
-        this.isSuccess = isSuccess
-        this.doneFctn = doneFctn
-    }
-    put() {
-        let that = this
-        this.thePromise = new Promise(function(resolve, reject) {
-            setImmediate(function() {
-                if (that.isSuccess) {
-                    resolve()
-                }
-                else {
-                    reject(new Error("Huston..."))
-                }
-                that.doneFctn()
-            })
-        })
-        return this.thePromise
-    }
-    close() {
-        return new Promise((resolve) => {
-            resolve()
-        })
-    }
 }
 
 let receiver = new Receiver(config)
@@ -74,7 +47,7 @@ test("Shour return 503, if the data is not a JSON.", () => {
 })
 
 test("Request successful storage (together with the next test).", (done) => {
-    const dbMock = new DBMock(true, done)
+    const dbMock = new DbMock(true, done)
     receiver.databases[config["accepted-topics"][0].name] = dbMock
 
     receiver.handlePostRequest("/", streamMock)
@@ -87,7 +60,7 @@ test("The former test should result in a 200 answer.", () => {
 })
 
 test("Request successful storage (together with the next test).", (done) => {
-    const dbMock = new DBMock(false, done)
+    const dbMock = new DbMock(false, done)
     receiver.databases[config["accepted-topics"][0].name] = dbMock
 
     receiver.handlePostRequest("/", streamMock)

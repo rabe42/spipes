@@ -2,6 +2,7 @@
 const fs = require("fs")
 const rimraf = require("rimraf")
 const Exporter = require("./exporter")
+const DbMock = require("../../tests/mocks/DbMock")
 
 const config = {
     "name": "localhost",
@@ -60,4 +61,20 @@ test("Should update the bookkeeping information.", (done) => {
                 done()
             })
     })
+})
+
+test("should fail to start the exporter, if the bookkeeping cannot be successfully initialized.", (done) => {
+    // TODO: Ich muss es erreichen, dass die Bookkeeping Information nicht gelesen und angelegt werden kann.
+    exporter.bookkeepingDb = new DbMock(false, done)
+    exporter.start()
+})
+
+test("should not be started.", () => {
+    expect(exporter.started).toBeFalsy()
+})
+
+test("should fail, if the bookkepping database isn't initialized.", () => {
+    exporter.bookkeepingDb = undefined
+    exporter.start()
+    expect(exporter.started).toBeFalsy()
 })
