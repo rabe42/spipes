@@ -15,7 +15,8 @@
     "exporter": "PROCESS_TYPE=exporter node index.js",
     "test-client": "NODE_TLS_REJECT_UNAUTHORIZED=0 node scripts/http2client.js",
     "h2get": "NODE_TLS_REJECT_UNAUTHORIZED=0 node scripts/h2get.js /status",
-    "h2post": "NODE_TLS_REJECT_UNAUTHORIZED=0 node scripts/h2post.js /"
+    "h2post": "NODE_TLS_REJECT_UNAUTHORIZED=0 node scripts/h2post.js /",
+    "check-license": "node scripts/license-check.js"
   },
   "author": "Dr.-Ing. Ralf Berger",
   "license": "ISC",
