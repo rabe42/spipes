@@ -1,5 +1,6 @@
 /* global beforeAll afterAll expect test */
-const Exporter = require("./exporter")
+//const Exporter = require("./exporter")
+const BookkeepingStore = require("./bookkeeping-store")
 const fs = require("fs")
 const rimraf = require("rimraf")
 const config = require("../../config/exporter")
@@ -17,14 +18,14 @@ afterAll((done) => {
 
 test("Should provide an empty array, if the configuration has an topic and an originator in.", () => {
     config["originators"] = []
-    const exporter = new Exporter(config)
+    const store = new BookkeepingStore(config["database-url"], config["topic"], config["id"], config["originators"])
 
-    expect(exporter.calculateBookkeepingIds()).toEqual([])
-    expect(exporter.calculateBookkeepingIds({topic: "test"})).toEqual([])
+    expect(store.calculateBookkeepingIds()).toEqual([])
+    expect(store.calculateBookkeepingIds({topic: "test"})).toEqual([])
 })
 
 test("Should return an arrays of Ids, if more than one originator is provided.", () => {
     config["originators"] = ["o1", "o2"]
-    const exporter = new Exporter(config)
-    expect(exporter.calculateBookkeepingIds()).toEqual(["test-o1", "test-o2"])
+    const store = new BookkeepingStore(config["database-url"], config["topic"], config["id"], config["originators"])
+    expect(store.calculateBookkeepingIds()).toEqual(["test-o1", "test-o2"])
 })
