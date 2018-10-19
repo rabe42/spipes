@@ -2,6 +2,7 @@
 const BookkeepingStore = require("./bookkeeping-store")
 const rimraf = require("rimraf")
 const fs = require("fs")
+const DbMock = require("../../tests/mocks/DbMock")
 
 const databaseUrl = "bs-db"
 const topic = "test"
@@ -47,7 +48,6 @@ test("Should create a promise.", (done) => {
         })
 })
 
-
 test("Should update the bookkeeping information.", (done) => {
     const bookkeepingIds = store.calculateBookkeepingIds()
     store.updateBookkeepingInfo(store.originators[0], 100).then(() => {
@@ -60,5 +60,15 @@ test("Should update the bookkeeping information.", (done) => {
                 fail(error)
                 done()
             })
+    })
+})
+
+test("should fail to update the bookkeeping information, if the originator is unkonwn.", (done) => {
+    store.bookkeepingDb = new DbMock(false)
+    store.updateBookkeepingInfo("Don't care!", 1).then(() => {
+        fail()
+        done()
+    }).catch(() => {
+        done()
     })
 })
