@@ -46,3 +46,19 @@ test("Should create a promise.", (done) => {
             done()
         })
 })
+
+
+test("Should update the bookkeeping information.", (done) => {
+    const bookkeepingIds = store.calculateBookkeepingIds()
+    store.updateBookkeepingInfo(store.originators[0], 100).then(() => {
+        store.getBookkeepingInfo(bookkeepingIds[0], store.originators[0])
+            .then((doc) => {
+                expect(doc["sequence-no"]).toBe(100)
+                done()
+            })
+            .catch((error) => {
+                fail(error)
+                done()
+            })
+    })
+})
