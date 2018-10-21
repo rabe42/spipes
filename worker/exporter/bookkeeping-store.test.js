@@ -64,8 +64,28 @@ test("Should update the bookkeeping information.", (done) => {
 })
 
 test("should fail to update the bookkeeping information, if the originator is unkonwn.", (done) => {
-    store.bookkeepingDb = new DbMock(false)
+    store.bookkeepingDb = new DbMock({"get-success": false, "put-success": false})
     store.updateBookkeepingInfo("Don't care!", 1).then(() => {
+        fail()
+        done()
+    }).catch(() => {
+        done()
+    })
+})
+
+test("should check, that the bookkeeping database is really present.", (done) => {
+    store.bookkeepingDb = new DbMock({"get-success": false, "put-success": false})
+    store.initiateBookkeeping().then(() => {
+        fail()
+        done()
+    }).catch(() => {
+        done()
+    })
+})
+
+test("should fail, if put is working, but get not.", (done) => {
+    store.bookkeepingDb = new DbMock({"get-success": false, "put-success": true})
+    store.initiateBookkeeping().then(() => {
         fail()
         done()
     }).catch(() => {

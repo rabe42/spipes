@@ -67,9 +67,6 @@ class BookkeepingStore {
         const that = this
         return new Promise((resolve, reject) => {
             // Try to store the starting book keeping information.
-            if (!that.bookkeepingDb) {
-                reject(new Error("No bookkeeping database initialized!"))
-            }
             that.bookkeepingDb.put({"_id": bookkeepingId, "sequence-no": 0}).then(() => {
                 logger.info(`Exporter.getBookkeepingInfo(): Created bookkeeping information for "${bookkeepingId}"`)
                 that.bookkeepingDb.get(bookkeepingId).then((doc) => {

@@ -2,10 +2,9 @@
 const Promise = require("promise")
 
 class DbMock {
-    constructor(isSuccess, doneFctn, result) {
-        this.isSuccess = isSuccess
-        this.doneFctn = doneFctn
-        this.result = result
+    constructor(config) {
+        this.config = config
+        this.doneFctn = config["done"]
     }
     /**
      * The mocked method can be controlled by the consturctor parameters. It will
@@ -15,8 +14,8 @@ class DbMock {
         let that = this
         return new Promise((resolve, reject) => {
             setImmediate(() => {
-                if (that.isSuccess) {
-                    resolve(that.result)
+                if (that.config["put-success"]) {
+                    resolve(that.config["result"])
                 }
                 else {
                     reject(new Error("Earth is blue..."))
@@ -35,8 +34,8 @@ class DbMock {
         let that = this
         return new Promise(function(resolve, reject) {
             setImmediate(() => {
-                if (that.isSuccess) {
-                    resolve(that.result)
+                if (that.config["get-success"]) {
+                    resolve(that.config["result"])
                 }
                 else {
                     reject(new Error("Huston..."))
