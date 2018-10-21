@@ -29,6 +29,13 @@ The following metadata is expected with each data package:
 }
 ```
 
+# Sender
+## Responsibility
+A sender is the adapter of an application, which has to send messages to other part of the system.
+It hides the complexity of the protocol and provides a unique sequence number for every message, send from this 'originator'.
+
+This implies also, that there are probably more than one originator on each host.
+
 # Receiver 
 ## Responsibility
 A Receiver stores the messages unter a particular topic into the data store. It validates the content before it is stored. It also increases the number of hops the message was already received by. If this number exceed the number configured in the "max-hops" parameter, the message is discarded.
