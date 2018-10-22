@@ -14,7 +14,7 @@ class DbMock {
         let that = this
         return new Promise((resolve, reject) => {
             setImmediate(() => {
-                if (that.config["put-success"]) {
+                if (that.config["get-success"]) {
                     resolve(that.config["result"])
                 }
                 else {
@@ -34,7 +34,7 @@ class DbMock {
         let that = this
         return new Promise(function(resolve, reject) {
             setImmediate(() => {
-                if (that.config["get-success"]) {
+                if (that.config["put-success"]) {
                     resolve(that.config["result"])
                 }
                 else {

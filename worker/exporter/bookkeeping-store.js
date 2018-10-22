@@ -63,7 +63,7 @@ class BookkeepingStore {
      * @returns {Promise} A promise which resoves with the result from the database. 
      */
     getBookkeepingInfo(bookkeepingId, originator) {
-        logger.debug(`Exporter.getBookeepingInfo(): for="${bookkeepingId}" from=${originator}`)
+        logger.debug(`Exporter.getBookeepingInfo(): for="${bookkeepingId}" from="${originator}"`)
         const that = this
         return new Promise((resolve, reject) => {
             // Try to store the starting book keeping information.
