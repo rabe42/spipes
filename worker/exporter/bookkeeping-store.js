@@ -32,10 +32,9 @@ class BookkeepingStore {
      */
     calculateBookkeepingIds() {
         let result = []
-        const originators = this.originators
-        if (originators) {
+        if (this.originators) {
             for (let i = 0; i < this.originators.length; i++) {
-                result.push(this.calculateBookkeeptingId(originators[i]))
+                result.push(this.calculateBookkeeptingId(this.originators[i]))
             }
         }
         return result
