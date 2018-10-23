@@ -9,13 +9,13 @@ const logger = require("../../common/logger")
  */
 class BookkeepingStore {
 
-    constructor(databaseUrl, topic, id, originators) {
-        if (!(databaseUrl && topic && id && originators)) {
+    constructor(config) {
+        if (!config) {
             throw new Error("One of the parameters to create a bookstore isn't present!")
         }
-        this.topic = topic
-        this.bookkeepingDb = new PouchDB(`${databaseUrl}/${topic}${id}`)
-        this.originators = originators
+        this.topic = config.topic
+        this.bookkeepingDb = new PouchDB(`${config["database-url"]}/${config.topic}${config.id}`)
+        this.originators = config.originators
     }
 
     /**

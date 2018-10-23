@@ -26,6 +26,6 @@ test("Should provide an empty array, if the configuration has an topic and an or
 
 test("Should return an arrays of Ids, if more than one originator is provided.", () => {
     config["originators"] = ["o1", "o2"]
-    const store = new BookkeepingStore(config["database-url"], config["topic"], config["id"], config["originators"])
+    const store = new BookkeepingStore(config)
     expect(store.calculateBookkeepingIds()).toEqual(["test-o1", "test-o2"])
 })
