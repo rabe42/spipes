@@ -24,6 +24,11 @@ test("should create a new bookkeeping store.", () => {
     expect(store).toBeDefined()
 })
 
+test("should provide an empty list of bookkeeping Ids, as no originators are defined.", () => {
+    store.originators = undefined
+    expect(store.calculateBookkeepingIds()).toEqual([])
+})
+
 test("should fail to create a bookkeeping store, if one of the initialization parameters isn't provided.", () => {
     try {
         new BookkeepingStore()
