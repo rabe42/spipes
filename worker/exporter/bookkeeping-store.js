@@ -23,7 +23,7 @@ class BookkeepingStore {
      * @param {string} originator The originator of a message.
      * @returns {string} The identifier of the bookkeeping record.
      */
-    calculateBookkeeptingId(originator) {
+    calculateBookkeepingId(originator) {
         return `${this.topic}-${originator}`
     }
 
@@ -34,7 +34,7 @@ class BookkeepingStore {
         let result = []
         if (this.originators) {
             for (let i = 0; i < this.originators.length; i++) {
-                result.push(this.calculateBookkeeptingId(this.originators[i]))
+                result.push(this.calculateBookkeepingId(this.originators[i]))
             }
         }
         return result
