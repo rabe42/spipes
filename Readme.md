@@ -6,7 +6,7 @@ Provides a http/2 based service for the buffered transfer of arbitrary messages 
 The individual parts of the infrastructure are intended to be so small, that a design isn't needed at all. Everything should be managed on the architecture level.
 
 ### Note
-Testing of different test suites with jest are running in parallel. This results regulary in race conditions on shared ressources. Because of this, the database location and file ressources should be unique in each test suite.
+> Testing of different test suites with jest are running in parallel. This results regulary in race conditions on shared ressources. Because of this, the database location and file ressources should be unique in each test suite.
 
 ## Seting up of the development environment
 The whole settings can be influenced by environment variables only. This allows to influence the settings also at runtime. Take a look to the files in the configuration directory to identify the different environment variables.
@@ -21,8 +21,8 @@ Another worker can be an executor, which interpred the content, if the destinati
 The following metadata is expected with each data package:
 ```JSON
 {
-    "originator": "fqdn.node.name",
-    "destination": "fqdn.node.name",
+    "originator": "URI",
+    "destination": "URI",
     "content-type": "mime-type",
     "topic": "topic-name",
     "data": BLOB
@@ -34,7 +34,10 @@ The following metadata is expected with each data package:
 A sender is the adapter of an application, which has to send messages to other part of the system.
 It hides the complexity of the protocol and provides a unique sequence number for every message, send from this 'originator'.
 
-This implies also, that there are probably more than one originator on each host.
+This implies also, that there are probably more than one originator on each host. This leads to the fact, that the originator cannot be just a FQDN. As a originator may be also a destination, a URI is the correct definition of a originator.
+
+## Open Points
+[ ] Define the resiliant behaviour.
 
 # Receiver 
 ## Responsibility
@@ -81,7 +84,7 @@ The handling of these cases may be consolidated in a common worker class.
 ### Node Configuration
 Each forwarder can be configured to communicate the received information to a set of receiving hosts. Each message will be communicated to all hosts.
 A forwarder will read the information of a topic from the database and forward this to the target, if this is part of the configured hosts, or to all configured hosts otherwise. (Flodding)
-To avoid the flodding of the system with the messages, we adopt the strategy from the TCP/IP stack. We count the numbers of hops in the meta information of the message.
+To avoid the flodding of the system with the messages, we adopt the strategy from the TCP/IP stack. We count the numbers of hops in the meta information of the message. An important aspect of the forwarding is also, that the forwarder don't take the sequence of the messages into account. It simply forwards everything, which he can get a grip on. Maybe twice!
 
 ```JSON
 {
@@ -98,7 +101,7 @@ To avoid the flodding of the system with the messages, we adopt the strategy fro
 ### Open Topics
 [ ] Manage what happen, if the receiving host is not accepting for a configured amount of time/tries.
 [ ] Manage what happen, if all receivers accepted a message.
-[ ] Manage what happen, if all 
+[ ] Define the resiliant behaviour.
 
 ## Executor
 ### Node Configuration
@@ -106,6 +109,7 @@ This may allow in the future to configure how to work with the different mime-ty
 
 ### Open Topics
 [ ] Start to refine
+[ ] Define the resiliant behaviour.
 
 ## Exporter
 ### Overview
@@ -121,6 +125,7 @@ The algorithm uses havily promisses. This allows to run the exporter in a non bl
 [ ] Retrieving the initial sequence numer.
 [ ] Moving non exported messages to a "error" store.
 [ ] Parallel exporting but sequencial remove of the lock file. (Performance)
+[ ] Define the resiliant behaviour.
 
 # Environment
 ## Cryptography
@@ -149,6 +154,7 @@ The Janitor will cleanup the different topics after the defined retention period
 
 ## Open Topics
 [ ] Start to refine.
+[ ] Define the resiliant behaviour.
 
 # A Simple http/2 client
 For the sake of integration tests, a simple http/2 client is provided in the scripts subfolder. This client should be used to replay wrong behaviour between the different nodes of the infrastructure, as it can simulate more use cases than just the limited range given by the protocol between the nodes. It may also be used to simulate security attacs.
