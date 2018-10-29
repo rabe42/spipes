@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "Provides an infrastructure for this sophisticated message transfer management.",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rabe42/spipes"
+  },
   "scripts": {
     "test": "jest --coverage",
     "debug-test": "node --nolazy --inspect-brk=9229 node_modules/.bin/jest",
