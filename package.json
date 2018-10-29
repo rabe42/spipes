@@ -28,12 +28,12 @@
     "eslint": "^4.18.2",
     "jest": "^22.4.2",
     "jsdoc": "^3.5.5",
-    "promise": "^8.0.1",
+    "promise": "^8.0.2",
     "rimraf": "*",
     "webpack": "^3.11.0"
   },
   "dependencies": {
-    "joi": "^13.4.0",
+    "joi": "^13.7.0",
     "pouchdb": "^6.4.3",
     "pouchdb-find": "^6.4.3",
     "winston": "^3.0.0"
