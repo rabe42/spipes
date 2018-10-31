@@ -81,7 +81,6 @@ class MessageSender {
      */
     send(destination, topic, message) {
         const that = this
-        debugger
         return this._wrapMessage(destination, topic, message).then((wrappedMessage) => {
             return that._saveMessage(wrappedMessage)
         })
@@ -110,7 +109,6 @@ class MessageSender {
     }
 
     _setSequenceNo(wrappedMessage, resolve, reject) {
-        debugger
         logger.debug(`MessageSender._setSequenceNo(): ${this.sequenceNoData["sequence-no"]}`)
         wrappedMessage["_id"] = `${this.config["originator"]}-${this.sequenceNoData["sequence-no"]}`
         wrappedMessage["sequence-no"] = this.sequenceNoData["sequence-no"]
