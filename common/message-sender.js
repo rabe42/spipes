@@ -26,6 +26,10 @@ const configSchema = Joi.object().keys({
  */
 class MessageSender {
 
+    /**
+     * Checks the configuration of completeness and initializes the database for message buffering.
+     * @param config The configuration for the sender.
+     */
     constructor(config) {
         Joi.validate(config, configSchema, (err) => {
             if (err !== null) {
