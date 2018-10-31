@@ -38,6 +38,18 @@ It hides the complexity of the protocol and provides a unique sequence number fo
 
 This implies also, that there are probably more than one originator on each host. This leads to the fact, that the originator cannot be just a FQDN. As a originator may be also a destination, a URI is the correct definition of a originator.
 
+## Configuration
+```JSON
+{
+    "originator": "uri",     // The name of the current node
+    "topic": "The name of the topic",
+    "host": {"host": "fqdn", "port": 3000},
+    "database-url": "http://couch-db-or-file-location",
+    "limit": 100,      // 100 messages at a time
+    "interval": 3000   // Check every 3s for new messages.
+}
+```
+
 ## Open Points
 [ ] Define the resiliant behaviour.
 
@@ -88,13 +100,12 @@ Each forwarder can be configured to communicate the received information to a re
 
 ```JSON
 {
-    "name": "fqdn",     // The name of the current node
+    "name": "uri",     // The name of the current node
     "topic": "The name of the topic",
-    "hosts": {"host": "fqdn", "port": 3000},
+    "host": {"host": "fqdn", "port": 3000},
     "database-url": "http://couch-db-or-file-location",
-    "limit": 100,       // 100 messages at a time
-    "interval": 3000,   // Check every 3s for new messages.
-    "retries": 3        // Number of retries to deliver.
+    "limit": 100,      // 100 messages at a time
+    "interval": 3000   // Check every 3s for new messages.
 }
 ```
 
