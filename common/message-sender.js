@@ -37,6 +37,18 @@ class MessageSender {
         this.messageDb = new PouchDB(config["database-url"] + "/messages")
     }
 
+    /**
+     * Wraps the message in the message envelope, store it into the queue database and trigger to send it.
+     * @param {*} message The message to be send.
+     * @returns A promise, which succeeds, as soon as the message is in the queue database.
+     */
+    send(destination, topic, message) {
+        const that = this
+        return this._wrapMessage(destination, topic, message).then((wrappedMessage) => {
+            return that._saveMessage(wrappedMessage)
+        })
+    }
+
     _initializeBookkeeping() {
         logger.debug("MessageSender._initializeBookkeeping()")
         const that = this
@@ -69,21 +81,9 @@ class MessageSender {
      * Increments the sequence number not only in the receiver, but also in the database.
      * @returns A promise, which resolves, if it was possible to update the database.
      */
-    incrementSequenceNo() {
+    _incrementSequenceNo() {
         this.sequenceNoData["sequence-no"]++
         return this.bookkeepingDb.put(this.sequenceNoData)
-    }
-
-    /**
-     * Wraps the message in the message envelope, store it into the queue database and trigger to send it.
-     * @param {*} message The message to be send.
-     * @returns A promise, which succeeds, as soon as the message is in the queue database.
-     */
-    send(destination, topic, message) {
-        const that = this
-        return this._wrapMessage(destination, topic, message).then((wrappedMessage) => {
-            return that._saveMessage(wrappedMessage)
-        })
     }
 
     _wrapMessage(destination, topic, message) {
@@ -112,7 +112,7 @@ class MessageSender {
         logger.debug(`MessageSender._setSequenceNo(): ${this.sequenceNoData["sequence-no"]}`)
         wrappedMessage["_id"] = `${this.config["originator"]}-${this.sequenceNoData["sequence-no"]}`
         wrappedMessage["sequence-no"] = this.sequenceNoData["sequence-no"]
-        this.incrementSequenceNo().then(() => {
+        this._incrementSequenceNo().then(() => {
             logger.debug("MessageSender._setSequenceNo(): successful.")
             resolve(wrappedMessage)
         }).catch((error) => {
