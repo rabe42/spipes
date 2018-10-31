@@ -31,7 +31,7 @@ The following metadata is expected with each data package:
 }
 ```
 
-# Sender
+# Message Sender
 ## Responsibility
 A sender is the adapter of an application, which has to send messages to other part of the system.
 It hides the complexity of the protocol and provides a unique sequence number for every message, send from this 'originator'.
