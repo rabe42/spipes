@@ -17,6 +17,8 @@ The basic idea is, that the service is separated into minimum two independend pa
 
 Another worker can be an executor, which interpred the content, if the destination node equals the current node.
 
+For the sake of simplicity, a forwarder may receive messages from an arbitrary number of sources, but forward it to exactly one receiver. For all other setups a "Tee" will be provided, which allows to distribute the messages, received for a certain topic to a collection of hosts. 
+
 ## Data Model in an NoSQL database
 The following metadata is expected with each data package:
 ```JSON
@@ -82,25 +84,22 @@ The handling of these cases may be consolidated in a common worker class.
 
 ## Forwarder
 ### Node Configuration
-Each forwarder can be configured to communicate the received information to a set of receiving hosts. Each message will be communicated to all hosts.
-A forwarder will read the information of a topic from the database and forward this to the target, if this is part of the configured hosts, or to all configured hosts otherwise. (Flodding)
-To avoid the flodding of the system with the messages, we adopt the strategy from the TCP/IP stack. We count the numbers of hops in the meta information of the message. An important aspect of the forwarding is also, that the forwarder don't take the sequence of the messages into account. It simply forwards everything, which he can get a grip on. Maybe twice!
+Each forwarder can be configured to communicate the received information to a receiving hosts.
 
 ```JSON
 {
     "name": "fqdn",     // The name of the current node
     "topic": "The name of the topic",
-    "hosts": [{"host": "fqdn", "port": 3000}, {"host": "fqdn", "port": 2000}],
+    "hosts": {"host": "fqdn", "port": 3000},
     "database-url": "http://couch-db-or-file-location",
     "limit": 100,       // 100 messages at a time
-    "interval": 3000,   // Every 3s
-    "retries": 3        // Number of retries per node.
+    "interval": 3000,   // Check every 3s for new messages.
+    "retries": 3        // Number of retries to deliver.
 }
 ```
 
 ### Open Topics
 [ ] Manage what happen, if the receiving host is not accepting for a configured amount of time/tries.
-[ ] Manage what happen, if all receivers accepted a message.
 [ ] Define the resiliant behaviour.
 
 ## Executor
