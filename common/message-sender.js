@@ -53,6 +53,11 @@ class MessageSender {
         })
     }
 
+    /**
+     * Initializes the bookkeeping, right now only the storage of a sequence number for this
+     * originator.
+     * @returns A promise, which is resolved, if the persistent bookkeeping information can be retrieved and used.
+     */
     _initializeBookkeeping() {
         logger.debug("MessageSender._initializeBookkeeping()")
         const that = this
@@ -90,6 +95,14 @@ class MessageSender {
         return this.bookkeepingDb.put(this.sequenceNoData)
     }
 
+    /**
+     * Each message comes with an envelope, which contains the originator, the destination, the topic and a unique
+     * sequence number.
+     * @param destination The destination of the message.
+     * @param topic The topic of the message.
+     * @param message The message itself.
+     * @returns A promise, which resolves, after the sequence number is persisted successfully.
+     */
     _wrapMessage(destination, topic, message) {
         const that = this
         return new Promise((resolve, reject) => {
@@ -112,6 +125,9 @@ class MessageSender {
         })
     }
 
+    /**
+     * The sequence number of a message must be continuously growing without gaps.
+     */
     _setSequenceNo(wrappedMessage, resolve, reject) {
         logger.debug(`MessageSender._setSequenceNo(): ${this.sequenceNoData["sequence-no"]}`)
         wrappedMessage["_id"] = `${this.config["originator"]}-${this.sequenceNoData["sequence-no"]}`
@@ -125,6 +141,11 @@ class MessageSender {
         })
     }
 
+    /**
+     * Saves the message document in the queue database.
+     * @param messageDocument
+     * @returns A promise, which resolves, if the message is successful saved in the database.
+     */
     _saveMessage(messageDocument) {
         return this.messageDb.put(messageDocument)
     }
