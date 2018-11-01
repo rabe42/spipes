@@ -95,8 +95,11 @@ A worker is configured to read metadata and data from a data store, process the 
 The handling of these cases may be consolidated in a common worker class.
 
 ## Forwarder
+### Overview
+The forwarder will forward messages in the database to exactly one receiving host. As a selector, it is possible to define the topic, of the message, which should be forwarded. After the message was forwarded, it is moved to the forwarded store, if it is configured. A janitor node should be configured to cleanup this database.
+
 ### Node Configuration
-Each forwarder can be configured to communicate the received information to a receiving hosts.
+Each forwarder can be configured to communicate the received information to exactly one receiving hosts. If the receiver isn't answering within a configured amount of time, a circuit breaker will step in and will handle the retries.
 
 ```JSON
 {
@@ -111,15 +114,10 @@ Each forwarder can be configured to communicate the received information to a re
 
 ### Open Topics
 [ ] Manage what happen, if the receiving host is not accepting for a configured amount of time/tries.
-[ ] Define the resiliant behaviour.
 
 ## Executor
-### Node Configuration
-This may allow in the future to configure how to work with the different mime-types.
-
-### Open Topics
-[ ] Start to refine
-[ ] Define the resiliant behaviour.
+### Overview
+The 
 
 ## Exporter
 ### Overview
@@ -137,6 +135,26 @@ The algorithm uses havily promisses. This allows to run the exporter in a non bl
 [ ] Parallel exporting but sequencial remove of the lock file. (Performance)
 [ ] Define the resiliant behaviour.
 
+## Janitor
+### Overview
+The Janitor will cleanup the different topics after the defined retention period. The Janitor is just a special worker with delete rights on the database. This is the only way in the system, that something got deleted! Checks after a configurable interval, if data in the database is stored longer than the retention period for this topic. If the retention period is met, the content will be removed from the database.
+
+- Retention Period must be defined.
+
+### Node Configuration
+```JSON
+{
+    "intervalMs": 60000,
+    "topics": ["topic-name", "topic-name", "topic-name"],
+    "database": "/db",
+    "retention-hours": 24
+}
+```
+
+### Open Topics
+[ ] Start to refine.
+[ ] Define the resiliant behaviour.
+
 # Environment
 ## Cryptography
 As the system is using http/2 you have to setup a key and a certificate for it. You may use the following commands to achieve this:
@@ -149,28 +167,10 @@ openssl x509 -req -sha256 -days 365 -in server.csr -signkey server.key -out serv
 ```
 For development purposes, you may choose `localhost` as the FQDN of the host. 
 
-# Janitor
-## Overview
-The Janitor will cleanup the different topics after the defined retention period. The Janitor is just a special worker with delete rights on the database. This is the only way in the system, that something got deleted! Checks after a configurable interval, if data in the database is stored longer than the retention period for this topic. If the retention period is met, the content will be removed from the database.
-
-## Node Configuration
-```JSON
-{
-    "intervalMs": 60000,
-    "topics": ["topic-name", "topic-name", "topic-name"],
-    "database": "/db"
-}
-```
-
-## Open Topics
-[ ] Start to refine.
-[ ] Define the resiliant behaviour.
-
 # A Simple http/2 client
 For the sake of integration tests, a simple http/2 client is provided in the scripts subfolder. This client should be used to replay wrong behaviour between the different nodes of the infrastructure, as it can simulate more use cases than just the limited range given by the protocol between the nodes. It may also be used to simulate security attacs.
 
 # Open Points
-* Work on more than one request at a time.
 * Cryptography for the docker parts, based on `lets encrypt`.
 * Docker Images for the infrastructure parts.
 * Architecture Sketches for the different setup scenarios.
