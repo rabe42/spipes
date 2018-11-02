@@ -51,8 +51,13 @@ class CircuitBreaker {
         this._close()
     }
 
+    /**
+     * Checks the status of the circuite breaker and serves the service function
+     * or the fallback function accordingly.
+     * @returns A promise, which resolves by the service function or with the 
+     *          result of the fallback function.
+     */
     service() {
-        const that = this
         if (this.state === "open" 
             && this.timestamp + this.options.resetTimeout < Date.now()) {
             this._halfOpen()
@@ -61,52 +66,83 @@ class CircuitBreaker {
             return this._handleClosed()
         }
         else if (this.state === "open") {
-            return new Promise((resolve) => { 
-                resolve(this.fallbackFctn())
-            })
+            return this._handleOpen()
         }
         else {
-            return new Promise((resolve, reject) => {
-                that.serviceFctn().then((value) => {
-                    that._close()
-                    resolve(value)
-                }).catch((error) => {
-                    logger.warn(`CircuitBreaker.service() service rejected in "${that.state}" state with ${error}`)
-                    that._open()
-                    reject(error)
-                })
-            })
+            return this._handleHalfOpen()
         }
     }
 
+    /**
+     * Wrapps the result of the service function and changes the status according of the number of 
+     * consecutive failures.
+     */
     _handleClosed() {
+        const that = this
         return new Promise((resolve, reject) => {
-            this.serviceFctn().then((value) => {
-                this.failures = 0
+            that.serviceFctn().then((value) => {
+                that.failures = 0
                 resolve(value)
             }).catch((error) => {
-                logger.warn(`CircuitBreaker.service() service rejected in "${this.state}" state with ${error}`)
-                this.failures++
-                if (this.failures >= this.options.maxFailures) {
-                    this._open()
+                logger.warn(`CircuitBreaker.service() service rejected in "${that.state}" state with ${error}`)
+                that.failures++
+                if (that.failures >= that.options.maxFailures) {
+                    that._open()
                 }
                 reject(error)
             })
         })
     }
 
+    /**
+     * @returns A new promise, which resolves with the result of the fallback function.
+     */
+    _handleOpen() {
+        return new Promise((resolve) => { 
+            resolve(this.fallbackFctn())
+        })
+    }
+
+    /**
+     * Tries to execute the service again. If this fails, it changes again to open. Otherwise it +
+     * will close the circuit again.
+     * @returns A promise, which resolves with the result of the service function.
+     */
+    _handleHalfOpen() {
+        const that = this
+        return new Promise((resolve, reject) => {
+            that.serviceFctn().then((value) => {
+                that._close()
+                resolve(value)
+            }).catch((error) => {
+                logger.warn(`CircuitBreaker.service() service still rejected in "${that.state}" state with ${error}`)
+                that._open()
+                reject(error)
+            })
+        })
+    }
+
+    /**
+     * Changes the circuit breaker to the open state, resetting the timestamp in this.
+     */
     _open() {
         logger.warn("CircuitBreaker._open(): failure count exceeded -> OPEN")
         this.state = "open"
         this.timestamp = Date.now()
     }
 
+    /**
+     * Closes the circuit, resetting the numbers of failures in this.
+     */
     _close() {
         logger.info("CircuitBreaker._close(): goes back to normal.")
         this.state = "closed"
         this.failures = 0
     }
 
+    /**
+     * Goes to the status, where we can retry to connect.
+     */
     _halfOpen() {
         logger.info("CircuitBreaker._halfOpen(): tries to go back to normal.")
         this.state = "half open"
