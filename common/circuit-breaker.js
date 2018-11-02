@@ -60,7 +60,7 @@ class CircuitBreaker {
         if (this.state === "closed") {
             return new Promise((resolve, reject) => {
                 that.serviceFctn().then((value) => {
-                    that._close()
+                    that.failures = 0
                     resolve(value)
                 }).catch((error) => {
                     logger.warn(`CircuitBreaker.service() service rejected in "${that.state}" state with ${error}`)

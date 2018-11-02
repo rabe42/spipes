@@ -66,3 +66,29 @@ test("should work transparent on the happy path.", (done) => {
         fail(error)
     })
 })
+
+test("should provide the fallback result, if the number of failures exceed.", (done) => {
+    let fallbackCalled = false
+    const cb = new CircuitBreaker(
+        () => {
+            return new Promise((resolve, reject) => {
+                reject()
+            })}, 
+        () => {
+            fallbackCalled = true
+            return "Ha ha!"
+        }, 
+        { name: "fallback test", maxFailures: 1 })
+    cb.service().then(() => {
+        fail("Unexpected success of the service function!")
+        done()
+    }).catch(() => {
+        cb.service().then(() => {
+            expect(fallbackCalled).toBeTruthy()
+            done()
+        }).catch((error) => {
+            fail(error)
+            done()
+        })
+    })
+})
