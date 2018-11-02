@@ -124,3 +124,43 @@ test("should retry, after the reset timeout is over.", (done) => {
         })
     })
 })
+
+test("should be back to normal calling it the 2nd time.", (done) => {
+    let serviceCalled = 0
+    let fallbackCalled = 0
+    const cb = new CircuitBreaker(
+        () => {
+            return new Promise((resolve, reject) => {
+                serviceCalled++
+                if (serviceCalled === 1) {
+                    reject()
+                }
+                else {
+                    resolve()
+                }
+            })}, 
+        () => {
+            fallbackCalled++
+            return "Ha ha!"
+        }, 
+        { name: "fallback test", maxFailures: 1, resetTimeout: 10 })
+    cb.service().catch(() => {
+        expect(serviceCalled).toBe(1)
+        cb.service().then(() => {
+            expect(fallbackCalled).toBe(1)
+            setTimeout(() => {
+                cb.service().then(() => {
+                    expect(serviceCalled).toBe(2)
+                    expect(fallbackCalled).toBe(1)
+                    done()
+                }).catch((error) => {
+                    fail(error)
+                    done()
+                })
+            }, 50)
+        }).catch((error) => {
+            fail(error)
+            done()
+        })
+    })
+})
