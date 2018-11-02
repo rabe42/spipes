@@ -58,19 +58,7 @@ class CircuitBreaker {
             this._halfOpen()
         }
         if (this.state === "closed") {
-            return new Promise((resolve, reject) => {
-                that.serviceFctn().then((value) => {
-                    that.failures = 0
-                    resolve(value)
-                }).catch((error) => {
-                    logger.warn(`CircuitBreaker.service() service rejected in "${that.state}" state with ${error}`)
-                    that.failures++
-                    if (that.failures >= that.options.maxFailures) {
-                        that._open()
-                    }
-                    reject(error)
-                })
-            })
+            return this._handleClosed()
         }
         else if (this.state === "open") {
             return new Promise((resolve) => { 
@@ -89,6 +77,22 @@ class CircuitBreaker {
                 })
             })
         }
+    }
+
+    _handleClosed() {
+        return new Promise((resolve, reject) => {
+            this.serviceFctn().then((value) => {
+                this.failures = 0
+                resolve(value)
+            }).catch((error) => {
+                logger.warn(`CircuitBreaker.service() service rejected in "${this.state}" state with ${error}`)
+                this.failures++
+                if (this.failures >= this.options.maxFailures) {
+                    this._open()
+                }
+                reject(error)
+            })
+        })
     }
 
     _open() {
