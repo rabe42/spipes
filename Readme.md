@@ -55,11 +55,10 @@ This implies also, that there are probably more than one originator on each host
 
 # Receiver 
 ## Responsibility
-A Receiver stores the messages unter a particular topic into the data store. It validates the content before it is stored. It also increases the number of hops the message was already received by. If this number exceed the number configured in the "max-hops" parameter, the message is discarded.
+A Receiver stores the messages unter a particular topic into the data store. It validates the content of the envelope and checks the maximum size, before it is stored.
 
 ## Node Configuration
 Each receiver node can be configured to accept communication only from a particular set of hosts. It is the responsibility of the receiver to receive metadata and data from a communication partner by http(s) protocol and to persist the data into a store, which is shared with different workers.
-
 
 The following metadata is expected to be provided in the configuration:
 ```JSON
@@ -74,8 +73,7 @@ The following metadata is expected to be provided in the configuration:
         {"name": "topic-name", "hosts": ["fqdn", "fqdn"]}
     ],
     "database-url": "database url",
-    "max-hops": 5,                      // The maximum number of hops
-    "maxDocumentSizeBytes": 2000000     // The maximum size of a message.
+    "maxDocumentSizeBytes": 2000000
 }
 ```
 An incomplete configuration will result in a termination of the services.
