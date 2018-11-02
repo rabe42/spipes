@@ -14,6 +14,32 @@ test("should fail to validate the options.", () => {
     catch (error) { /* Works as expected. */ }
 })
 
+test("should fail, if nothing is provided.", () => {
+    try {
+        new CircuitBreaker()
+        fail()
+    }
+    catch (error) { /* Works as expected. */}
+    try {
+        new CircuitBreaker("A string", () => {})
+        fail()
+    }
+    catch (error) { /* Works as expected. */ }
+})
+
+test("should fail, if the fallback function isn't provided.", () => {
+    try {
+        new CircuitBreaker(() => {})
+        fail()
+    }
+    catch (error) { /* Works as expected. */ }
+    try {
+        new CircuitBreaker(() => {}, "a")
+        fail()
+    }
+    catch (error) { /* Works as expected. */ }
+})
+
 test("should succeed to validate the right options.", () => {
     new CircuitBreaker(() => {}, () => {}, {
         name: "A test",
