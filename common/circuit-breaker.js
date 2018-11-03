@@ -95,11 +95,27 @@ class CircuitBreaker {
     }
 
     /**
+     * Checks, if the provided object is a promise. As there is no real typecheck available, the availability of
+     * a then() *and* catch() method is checked.
+     * @param {any} object The object to check.
+     * @returns true, if the object is a promise.
+     */
+    _isPromise(object) {
+        return !!object 
+            && (typeof object === "object" || typeof object === "function") 
+            && (typeof object.then === "function" && typeof object.catch === "function")
+    }
+
+    /**
      * @returns A new promise, which resolves with the result of the fallback function.
      */
     _handleOpen() {
-        return new Promise((resolve) => { 
-            resolve(this.fallbackFctn())
+        const result = this.fallbackFctn()
+        if (this._isPromise(result)) {
+            return result
+        }
+        return new Promise((resolve) => {
+            resolve(result)
         })
     }
 

@@ -103,8 +103,10 @@ test("should retry, after the reset timeout is over.", (done) => {
                 reject()
             })}, 
         () => {
-            fallbackCalled++
-            return "Ha ha!"
+            return new Promise((resolve) => {
+                fallbackCalled++
+                resolve("Ha ha!")
+            })
         }, 
         { name: "fallback test", maxFailures: 1, resetTimeout: 10 })
     cb.service().catch(() => {
