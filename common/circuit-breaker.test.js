@@ -166,3 +166,49 @@ test("should be back to normal calling it the 2nd time.", (done) => {
         })
     })
 })
+
+test("should go to fallback, after a number of failures.", (done) => {
+    let serviceCalled = 0
+    let fallbackCalled = 0
+    const service = () => {
+        return new Promise((resolve, reject) => {
+            serviceCalled++
+            if (serviceCalled < 3) {
+                reject(serviceCalled)
+            }
+            else {
+                resolve(serviceCalled)
+            }
+        })
+    }
+    const fallback = () => {
+        fallbackCalled++
+        return fallbackCalled
+    }
+    const options = {
+        name: "service and fallback switch test",
+        maxFailures: 3
+    }
+    const cb = new CircuitBreaker(service, fallback, options)
+    let promises = []
+    for (let i = 0; i < 5; i++) {
+        promises.push(cb.service())
+    }
+    setTimeout(() => {
+        expect(serviceCalled).toBe(5) // FIXME: This demonstrates a severe problem with this implementation!
+        //expect(serviceCalled).toBe(2)
+        //expect(fallbackCalled).toBe(3)
+        done()
+    }, 500)
+    // FIXME: Das Problem mit dieser Vorgehensweise ist, dass noch bevor der erste
+    // Promise resolved oder rejected ist, alle Aufrufe bereits erfolgt sind.
+    // Damit kann der CicuitBreaker zum einen nur eingeschränkt funktionieren,
+    // zum Anderen haben wir hier das Problem, dass die Funktionsweise auf die 
+    // Kooperation des Aufrufers angwiesen ist. 
+    // Dies kann eventuell umgangen werden, indem die Ausführung des Zustandsübergang
+    // vom aufrufenden Thread mit einem setImmediate() entkoppelt wird.
+    // Ansonsten könnten sehr viele Anfragen erstellt werden, ohne dass die Verwaltung
+    // des CircuitBreakers einspringt.
+    // Durch die Entkopplung wird das aber wahrscheinlich auch nicht wirkungsvoll 
+    // verhindert.
+})

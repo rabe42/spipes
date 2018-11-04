@@ -1,3 +1,5 @@
+/* global setImmediate */
+
 const logger = require("./logger")
 const Joi = require("joi")
 const Promise = require("promise")
@@ -58,6 +60,19 @@ class CircuitBreaker {
      *          result of the fallback function.
      */
     service() {
+        const that = this
+        return new Promise((resolve, reject) => {
+            setImmediate(() => {
+                that._service().then((value) => {
+                    resolve(value)
+                }).catch((error) => {
+                    reject(error)
+                })
+            })
+        })
+    }
+
+    _service() {
         if (this.state === "open" 
             && this.timestamp + this.options.resetTimeout < Date.now()) {
             this._halfOpen()
@@ -71,6 +86,18 @@ class CircuitBreaker {
         else {
             return this._handleHalfOpen()
         }
+    }
+
+    /**
+     * Checks, if the provided object is a promise. As there is no real typecheck available, the availability of
+     * a then() *and* catch() method is checked.
+     * @param {any} object The object to check.
+     * @returns true, if the object is a promise.
+     */
+    _isPromise(object) {
+        return !!object 
+            && (typeof object === "object" || typeof object === "function") 
+            && (typeof object.then === "function" && typeof object.catch === "function")
     }
 
     /**
@@ -95,18 +122,6 @@ class CircuitBreaker {
     }
 
     /**
-     * Checks, if the provided object is a promise. As there is no real typecheck available, the availability of
-     * a then() *and* catch() method is checked.
-     * @param {any} object The object to check.
-     * @returns true, if the object is a promise.
-     */
-    _isPromise(object) {
-        return !!object 
-            && (typeof object === "object" || typeof object === "function") 
-            && (typeof object.then === "function" && typeof object.catch === "function")
-    }
-
-    /**
      * @returns A new promise, which resolves with the result of the fallback function.
      */
     _handleOpen() {
@@ -114,9 +129,7 @@ class CircuitBreaker {
         if (this._isPromise(result)) {
             return result
         }
-        return new Promise((resolve) => {
-            resolve(result)
-        })
+        return Promise.resolve(result)
     }
 
     /**
