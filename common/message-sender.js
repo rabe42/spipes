@@ -159,7 +159,12 @@ class MessageSender {
      * will retry immediately, if not it will sleep for some time and try it again.
      */
     _sendFromQueue() {
-
+        // TODO: Decoupled sending form database.
+        // 0. Ist eine Nachricht da?
+        // 1. ja: Send to configured hub.
+        // 2. ja: Remove from database.
+        // 3. ja: setImmediate() für die nächste Nachricht.
+        // 4. nein: Warte die konfigurierte Zeit.
     }
 }
 
