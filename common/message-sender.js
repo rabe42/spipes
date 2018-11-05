@@ -120,6 +120,7 @@ class MessageSender {
                     that._setSequenceNo(wrappedMessage, resolve, reject)
                 }).catch((error) => {
                     logger.error(`MessageSender._wrapMessage(): failed to initialize bookkeeping due to: ${error}`)
+                    reject(error)
                 })
             }
         })
@@ -127,6 +128,9 @@ class MessageSender {
 
     /**
      * The sequence number of a message must be continuously growing without gaps.
+     * @param wrappedMessage The messages with meta data.
+     * @param resolve The function to call to resolve a promise.
+     * @param reject The function to call to reject a promise.
      */
     _setSequenceNo(wrappedMessage, resolve, reject) {
         logger.debug(`MessageSender._setSequenceNo(): ${this.sequenceNoData["sequence-no"]}`)
@@ -148,6 +152,14 @@ class MessageSender {
      */
     _saveMessage(messageDocument) {
         return this.messageDb.put(messageDocument)
+    }
+
+    /**
+     * Try to send the content from the database. If there is something, it
+     * will retry immediately, if not it will sleep for some time and try it again.
+     */
+    _sendFromQueue() {
+
     }
 }
 
