@@ -136,7 +136,8 @@ class Exporter extends Worker {
         const fn = path.format({dir: this.config["export-dir"], base: message._id})
         return new Promise((resolve, reject) => {
             if (!("_id" in message)) {
-                reject(Error("Cannot export a message without the _id property!"))
+                logger.error("Exporter.errorMessage(): Cannot export a message without the _id property!")
+                reject(new Error("Cannot export a message without the _id property!"))
             }
             fs.writeFile(fn, JSON.stringify(message), (error, result) => {
                 if (error) {
