@@ -202,3 +202,4 @@ For the sake of integration tests, a simple http/2 client is provided in the scr
 * Cryptography for the docker parts, based on `lets encrypt`.
 * Docker Images for the infrastructure parts.
 * Architecture Sketches for the different setup scenarios.
+* How to deal with the fact, that a sender is dying. Where to get a new sequence number root from ?
