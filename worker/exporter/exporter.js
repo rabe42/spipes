@@ -42,7 +42,7 @@ class Exporter extends Worker {
         logger.debug("Exporter.start(): starting processing...")
         const originators = this.config["originators"]
         for (let i = 0; i < originators.length; i++) {
-            this.processMessages(originators)
+            this.processMessages(originators[i])
         }
     }
 

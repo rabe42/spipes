@@ -14,20 +14,29 @@ class Worker {
     }
 
     /**
+     * Calculates the database location, depending on the fact, if the database is local or remote.
+     * @param {string} databaseUrl A local or a remote database location.
+     * @param {string} topic The topic of the database
+     * @returns {string} The complete database location URL.
+     */
+    calculateDatabaseLocation(databaseUrl, topic) {
+        if (this.isRemoteDatabase(databaseUrl)) {
+            return `${databaseUrl}/${topic}`
+        }
+        else {
+            this.checkLocationExists(databaseUrl)
+            return path.format({dir: databaseUrl, base: topic})
+        }
+    }
+
+    /**
      * Creates a new database for the consecutive use.
      * @param {string} databaseUrl The URL of the 
      * @param {string} topic The topic for which the database should created.
      */
     init(databaseUrl, topic) {
-        let databaseLocation = undefined
         logger.debug(`${this.constructor.name}.init(): ${databaseUrl} / ${topic}.`)
-        if (this.isRemoteDatabase(databaseUrl)) {
-            databaseLocation = `${databaseUrl}/${topic}`
-        }
-        else {
-            this.checkLocationExists(databaseUrl)
-            databaseLocation = path.format({dir: databaseUrl, base: topic})
-        }
+        let databaseLocation = this.calculateDatabaseLocation(databaseUrl, topic)
         logger.debug(`${this.constructor.name}.init(): Create database at "${databaseLocation}".`)
         this.db = new PouchDB(databaseLocation)
     }
