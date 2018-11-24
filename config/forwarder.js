@@ -4,9 +4,9 @@ module.exports = {
     "name": process.env.HOSTNAME || "localhost",
     "topic": process.env.TOPIC || "config",
     "host": {
-            "host": "fqdn", 
-            "port": 3000, 
-            "certificate": "-----BEGIN CERTIFICATE-----\
+        "host": "fqdn", 
+        "port": 3000, 
+        "certificate": "-----BEGIN CERTIFICATE-----\
             MIIDvDCCAqQCCQCJ/i5cVvPUzzANBgkqhkiG9w0BAQsFADCBnzELMAkGA1UEBhMC\
             REUxDzANBgNVBAgMBkJlcmxpbjEPMA0GA1UEBwwGQmVybGluMRQwEgYDVQQKDAtH\
             SyBTb2Z0d2FyZTEcMBoGA1UECwwTUHJvZHVjdCBEZXZlbG9wbWVudDESMBAGA1UE\
