@@ -23,6 +23,9 @@ Another worker can be an executor, which interpred the content, if the destinati
 For the sake of simplicity, a forwarder may receive messages from an arbitrary number of sources, but forward it to exactly one receiver. For all other setups a "Tee" will be provided, which allows to distribute the messages, received for a certain topic to a collection of hosts. 
 
 ## Data Model in an NoSQL database
+
+<db-url>/messages/<topic> is the basic structure.
+
 The following metadata is expected with each data package:
 ```JSON
 {
