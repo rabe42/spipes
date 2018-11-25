@@ -1,12 +1,14 @@
 /* global afterAll beforeAll expect fail test */
 const fs = require("fs")
+const path = require("path")
 const rimraf = require("rimraf")
 const config = require("../../config/exporter")
 const Exporter = require("./exporter")
 
-beforeAll((done) => {
+beforeAll(() => {
     config["database-url"] = "db-config-test"
-    fs.mkdir(config["database-url"], done)
+    fs.mkdirSync(config["database-url"])
+    fs.mkdirSync(path.format({dir: config["database-url"], base: "messages"}))
 })
 
 afterAll((done) => {

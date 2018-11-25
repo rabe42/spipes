@@ -59,8 +59,9 @@ function mkdir(dirName) {
 
 beforeAll((done) => {
     mkdir(config["database-url"])
+    mkdir(path.format({dir: config["database-url"], base: "messages"}))
     exportedDb = new PouchDB(`${config["database-url"]}/${config["exported-store"]}`)
-    transactionDb = new PouchDB(`${config["database-url"]}/${config["topic"]}`)
+    transactionDb = new PouchDB(`${config["database-url"]}/messages/${config["topic"]}`)
     transactionDb.bulkDocs([message1, message2])
         .then(() => {
             rimraf.sync(config["export-dir"])
