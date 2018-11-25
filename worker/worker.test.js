@@ -41,8 +41,16 @@ test("should create a testdb directory.", (done) => {
     fs.mkdir("./testdb", done)
 })
 
-test("dir should exists!", () => {
+test("database dir should exists!", () => {
     fs.existsSync("./testdb")
+})
+
+test("should create the messages sub-db for the messages to be contained in.", (done) => {
+    fs.mkdir("./testdb/messages", done)
+})
+
+test("messages sub directory should exist", () => {
+    fs.existsSync("./testdb/messages")
 })
 
 test("should close a database, if created.", (done) => {

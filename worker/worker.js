@@ -19,13 +19,14 @@ class Worker {
      * @param {string} topic The topic of the database
      * @returns {string} The complete database location URL.
      */
-    calculateDatabaseLocation(databaseUrl, topic) {
+    calculateMessageDatabaseLocation(databaseUrl, topic) {
         if (this.isRemoteDatabase(databaseUrl)) {
-            return `${databaseUrl}/${topic}`
+            return `${databaseUrl}/messages/${topic}`
         }
         else {
             this.checkLocationExists(databaseUrl)
-            return path.format({dir: databaseUrl, base: topic})
+            this.checkLocationExists(path.format({dir: databaseUrl + "/messages"}))
+            return path.format({dir: databaseUrl + "/messages", base: topic})
         }
     }
 
@@ -36,7 +37,7 @@ class Worker {
      */
     init(databaseUrl, topic) {
         logger.debug(`${this.constructor.name}.init(): ${databaseUrl} / ${topic}.`)
-        let databaseLocation = this.calculateDatabaseLocation(databaseUrl, topic)
+        let databaseLocation = this.calculateMessageDatabaseLocation(databaseUrl, topic)
         logger.debug(`${this.constructor.name}.init(): Create database at "${databaseLocation}".`)
         this.db = new PouchDB(databaseLocation)
     }
