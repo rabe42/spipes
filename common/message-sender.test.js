@@ -1,4 +1,5 @@
-/* global afterAll beforeAll fail test */
+/* global afterAll beforeAll expect fail test */
+const PouchDB = require("pouchdb")
 const fs = require("fs")
 const rimraf = require("rimraf")
 
@@ -8,9 +9,12 @@ const rimraf = require("rimraf")
  */
 const MessageSender = require("./message-sender")
 const config = require("../config/sender")
+const location = config["database-url"] + "/messages/" + config.topic
 
-beforeAll((done) => {
-    fs.mkdir(config["database-url"], done)
+beforeAll(() => {
+    fs.mkdirSync(config["database-url"])
+    fs.mkdirSync(config["database-url"] + "/messages/")
+    fs.mkdirSync(location)
 })
 
 afterAll((done) => {
@@ -21,13 +25,32 @@ let sender
 
 test("Should be possible to create a message sender.", () => {
     sender = new MessageSender(config)
+    expect(sender).toBeDefined()
+})
+
+test("Should calculate the message database location as expected.", () => {
+    expect(sender._calculateMessageDbLocation()).toBe(location)
 })
 
 test("Should store the message and information into the queue database.", (done) => {
-    sender.send("destination", "topic", {name: "payload"}).then(() => {
+    sender.send("destination", "topic", {name: "payload"}).then((result) => {
+        expect(result).toBeDefined()
+        expect(result.id).toBeDefined()
         done()
     }).catch((error) => {
         fail(error)
         done()
+    })
+})
+
+test("The message should be stored completely in the database.", (done) => {
+    const dbURL = location
+    const db = new PouchDB(dbURL)
+    db.allDocs().then((result) => {
+        expect(result.rows.length).toBe(1)
+        done()
+    }).catch((error) => {
+        fail(error)
+        done()    
     })
 })

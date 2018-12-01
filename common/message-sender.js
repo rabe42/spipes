@@ -2,6 +2,7 @@ const logger = require("./logger")
 const Joi = require("joi")
 const Promise = require("promise")
 const PouchDB = require("pouchdb")
+const path = require("path")
 
 const hostSchema = Joi.object().keys({
     "host": Joi.string().hostname().required(),
@@ -19,8 +20,13 @@ const configSchema = Joi.object().keys({
 })
 
 /**
- * A message sender allows to send a message to all configured hosts. It encapsulates the number of 
- * hops and is configured, like the rest of the framework with an configuration object.
+ * A message sender allows to send a message to the configured topic. In fact, the message is
+ * just stored into the configured database. A forwarder, checking the database, will care to 
+ * forward the message.
+ * The responisibility of the sender is basically to create a unique sequence number and manage
+ * this.
+ * 
+ * @todo A interface, which retrieves the sequence number from the whole system is needed!
  * 
  * @author Dr. Ralf Berger (c) 2018
  */
@@ -38,7 +44,7 @@ class MessageSender {
             }
         })
         this.config = config
-        this.messageDb = new PouchDB(config["database-url"] + "/messages")
+        this.messageDb = new PouchDB(this._calculateMessageDbLocation())
     }
 
     /**
@@ -51,6 +57,15 @@ class MessageSender {
         return this._wrapMessage(destination, topic, message).then((wrappedMessage) => {
             return that._saveMessage(wrappedMessage)
         })
+    }
+
+    /**
+     * Calculates the message database location.
+     */
+    _calculateMessageDbLocation() {
+        const result = path.format({dir: path.format({dir: this.config["database-url"], base: "messages"}), base: this.config["topic"]})
+        logger.debug(`MessageSender.constructor(): Initializing message database on: ${result}`)
+        return result
     }
 
     /**
@@ -151,20 +166,8 @@ class MessageSender {
      * @returns A promise, which resolves, if the message is successful saved in the database.
      */
     _saveMessage(messageDocument) {
+        logger.debug(`MessageSender._saveMessage(): document=${messageDocument}`)
         return this.messageDb.put(messageDocument)
-    }
-
-    /**
-     * Try to send the content from the database. If there is something, it
-     * will retry immediately, if not it will sleep for some time and try it again.
-     */
-    _sendFromQueue() {
-        // TODO: Decoupled sending form database.
-        // 0. Ist eine Nachricht da?
-        // 1. ja: Send to configured hub.
-        // 2. ja: Remove from database.
-        // 3. ja: setImmediate() für die nächste Nachricht.
-        // 4. nein: Warte die konfigurierte Zeit.
     }
 }
 
