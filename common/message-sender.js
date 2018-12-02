@@ -52,9 +52,9 @@ class MessageSender {
      * @param {*} message The message to be send.
      * @returns A promise, which succeeds, as soon as the message is in the queue database.
      */
-    send(destination, topic, message) {
+    send(topic, message) {
         const that = this
-        return this._wrapMessage(destination, topic, message).then((wrappedMessage) => {
+        return this._wrapMessage(topic, message).then((wrappedMessage) => {
             return that._saveMessage(wrappedMessage)
         })
     }
@@ -118,12 +118,11 @@ class MessageSender {
      * @param message The message itself.
      * @returns A promise, which resolves, after the sequence number is persisted successfully.
      */
-    _wrapMessage(destination, topic, message) {
+    _wrapMessage(topic, message) {
         const that = this
         return new Promise((resolve, reject) => {
             const wrappedMessage = {
                 originator: this.config["originator"],
-                destination: destination,
                 topic: topic,
                 message: message
             }

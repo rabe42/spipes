@@ -33,7 +33,7 @@ test("Should calculate the message database location as expected.", () => {
 })
 
 test("Should store the message and information into the queue database.", (done) => {
-    sender.send("destination", "topic", {name: "payload"}).then((result) => {
+    sender.send("topic", {name: "payload"}).then((result) => {
         expect(result).toBeDefined()
         expect(result.id).toBeDefined()
         done()
@@ -54,3 +54,7 @@ test("The message should be stored completely in the database.", (done) => {
         done()    
     })
 })
+
+// test("Should schedule more than one message for sending.", () => {
+//     sender.send()
+// })
