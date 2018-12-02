@@ -141,7 +141,9 @@ class MessageSender {
     }
 
     /**
-     * The sequence number of a message must be continuously growing without gaps.
+     * The sequence number of a message must be continuously growing without gaps. This method
+     * returns only, using the resolve and the reject functions. In the case of success the
+     * resolved function will return the wrappedMessage, with the sequence-no and a new _id set.
      * @param wrappedMessage The messages with meta data.
      * @param resolve The function to call to resolve a promise.
      * @param reject The function to call to reject a promise.
@@ -150,6 +152,7 @@ class MessageSender {
         logger.debug(`MessageSender._setSequenceNo(): ${this.sequenceNoData["sequence-no"]}`)
         wrappedMessage["_id"] = `${this.config["originator"]}-${this.sequenceNoData["sequence-no"]}`
         wrappedMessage["sequence-no"] = this.sequenceNoData["sequence-no"]
+        logger.debug(`MessageSender._setSequenceNo(): _id=${wrappedMessage._id} seq-no=${wrappedMessage["sequence-no"]}`)
         this._incrementSequenceNo().then(() => {
             logger.debug("MessageSender._setSequenceNo(): successful.")
             resolve(wrappedMessage)

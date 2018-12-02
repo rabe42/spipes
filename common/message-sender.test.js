@@ -55,6 +55,18 @@ test("The message should be stored completely in the database.", (done) => {
     })
 })
 
-// test("Should schedule more than one message for sending.", () => {
-//     sender.send()
-// })
+test("Should schedule more than one message for sending.", (done) => {
+    sender.send("topic", {name: "p2", description: "The second message"}).then((result) => {
+        expect(result.id).toBeDefined()
+        return sender.send("topic", {name: "p3", description: "The third message"}).then((result) => {
+            expect(result.id).toBeDefined()
+            return sender.send("topic", {name: "p4", description: "The fourth message"}).then((result) => {
+                expect(result.id).toBeDefined()
+                done()
+            })
+        })
+    }).catch((error) => {
+        fail(error)
+        done()
+    })
+})
