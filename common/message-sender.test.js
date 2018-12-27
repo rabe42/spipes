@@ -56,7 +56,6 @@ test("The message should be stored completely in the database.", (done) => {
 })
 
 test("Should schedule more than one message for sending.", (done) => {
-    // Es scheint so zu sein, dass die wir versuchen ein Objekt zu aktualisieren, das bereits in der Datenbank ist.
     sender.send("topic", {name: "p2", description: "The second message"}).then((result) => {
         expect(result.id).toBeDefined()
         return sender.send("topic", {name: "p3", description: "The third message"}).then((result) => {

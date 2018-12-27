@@ -53,6 +53,7 @@ class MessageSender {
      * @returns A promise, which succeeds, as soon as the message is in the queue database.
      */
     send(topic, message) {
+        logger.debug(`MessageSender.send(): topic=${topic} message.name=${message.name}`)
         const that = this
         return this._wrapMessage(topic, message).then((wrappedMessage) => {
             return that._saveMessage(wrappedMessage)
@@ -106,8 +107,17 @@ class MessageSender {
      * @returns A promise, which resolves, if it was possible to update the database.
      */
     _incrementSequenceNo() {
+        // FIXME: It seems that the "const that = this" trick isn't working here!
+        const that = this
         this.sequenceNoData["sequence-no"]++
-        return this.bookkeepingDb.put(this.sequenceNoData)
+        debugger
+        return new Promise((resolve) => {
+            that.bookkeepingDb.put(that.sequenceNoData).then((result) => {
+                debugger
+                that.sequenceNoData._ref = result.ref
+                resolve(result)
+            })
+        })
     }
 
     /**
@@ -154,10 +164,10 @@ class MessageSender {
         wrappedMessage["sequence-no"] = this.sequenceNoData["sequence-no"]
         logger.debug(`MessageSender._setSequenceNo(): _id=${wrappedMessage._id} seq-no=${wrappedMessage["sequence-no"]}`)
         this._incrementSequenceNo().then(() => {
-            logger.debug("MessageSender._setSequenceNo(): successful.")
+            logger.debug("MessageSender._setSequenceNo(): sequence number successful incremented.")
             resolve(wrappedMessage)
         }).catch((error) => {
-            logger.error(`MessageSender._setSequenceNo(): Not able to set sequence number because of: ${error}`)
+            logger.error(`MessageSender._setSequenceNo(): Not able to increment sequence number because of: ${error}`)
             reject(error)
         })
     }
