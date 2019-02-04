@@ -106,24 +106,17 @@ class MessageSender {
      * Increments the sequence number not only in the receiver, but also in the database.
      * @returns A promise, which resolves, if it was possible to update the database.
      */
-    _incrementSequenceNo() {
-        // FIXME: It seems that the "const that = this" trick isn't working here!
+    async _incrementSequenceNo() {
         const that = this
         this.sequenceNoData["sequence-no"]++
-        debugger
-        return new Promise((resolve) => {
-            that.bookkeepingDb.put(that.sequenceNoData).then((result) => {
-                debugger
-                that.sequenceNoData._ref = result.ref
-                resolve(result)
-            })
+        return await that.bookkeepingDb.put(that.sequenceNoData).then((result) => {
+            that.sequenceNoData._rev = result.rev
         })
     }
 
     /**
      * Each message comes with an envelope, which contains the originator, the destination, the topic and a unique
      * sequence number.
-     * @param destination The destination of the message.
      * @param topic The topic of the message.
      * @param message The message itself.
      * @returns A promise, which resolves, after the sequence number is persisted successfully.
