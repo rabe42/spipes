@@ -117,7 +117,6 @@ class MessageSender {
     /**
      * Each message comes with an envelope, which contains the originator, the destination, the topic and a unique
      * sequence number.
-     * @param destination The destination of the message.
      * @param topic The topic of the message.
      * @param message The message itself.
      * @returns A promise, which resolves, after the sequence number is persisted successfully.
