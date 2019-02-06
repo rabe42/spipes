@@ -1,6 +1,5 @@
 const logger = require("./logger")
 const Joi = require("joi")
-const Promise = require("promise")
 const PouchDB = require("pouchdb")
 const path = require("path")
 
@@ -26,9 +25,9 @@ const configSchema = Joi.object().keys({
  * The responisibility of the sender is basically to create a unique sequence number and manage
  * this.
  * 
- * @todo A interface, which retrieves the sequence number from the whole system is needed!
+ * @todo An interface, which retrieves the sequence number from the whole system is needed!
  * 
- * @author Dr. Ralf Berger (c) 2018
+ * @author Dr. Ralf Berger (c) 2018, 2019
  */
 class MessageSender {
 
@@ -52,12 +51,11 @@ class MessageSender {
      * @param {*} message The message to be send.
      * @returns A promise, which succeeds, as soon as the message is in the queue database.
      */
-    send(topic, message) {
+    async send(topic, message) {
         logger.debug(`MessageSender.send(): topic=${topic} message.name=${message.name}`)
         const that = this
-        return this._wrapMessage(topic, message).then((wrappedMessage) => {
-            return that._saveMessage(wrappedMessage)
-        })
+        let wrappedMessage = await this._wrapMessage(topic, message)
+        return await that._saveMessage(wrappedMessage)
     }
 
     /**
@@ -70,36 +68,32 @@ class MessageSender {
     }
 
     /**
-     * Initializes the bookkeeping, right now only the storage of a sequence number for this
-     * originator.
-     * @returns A promise, which is resolved, if the persistent bookkeeping information can be retrieved and used.
+     * Initializes the bookkeeping of the sequence number.
      */
-    _initializeBookkeeping() {
+    async _initBookkeeping() {
         logger.debug("MessageSender._initializeBookkeeping()")
-        const that = this
         this.bookkeepingDb = new PouchDB(this.config["database-url"] + "/bookkeeping")
-        return new Promise((resolve, reject) => {
-            this.bookkeepingDb.get("sequence-no").then((data) => {
-                logger.debug("MessageSender._initializeBookkeeping(): Successful retrieved a sequence number from history.")
-                resolve(data)
-            }).catch(() => {
-                logger.debug("MessageSender._initializeBookkeeping(): Setting up new sequence number document...")
-                that.bookkeepingDb.put({
+
+        try {
+            // Check, if the bookkeeping information is already available
+            this.sequenceNoData = await this.bookkeepingDb.get("sequence-no")
+        }
+        catch (error) {
+            // If no, create the initial bookkeeping information and store this in the bookkeeping store.
+            try {
+                logger.debug("MessasgeSender._initBookkeeping(): Setting up new sequence number document...")
+                await this.bookkeepingDb.put({
                     _id: "sequence-no",
                     "sequence-no": 0
-                }).then(() => {
-                    logger.debug("MessageSender._initializeBookkeeping(): Successful setup of new sequence number.")
-                    return that.bookkeepingDb.get("sequence-no").then((data) => {
-                        logger.debug("MessageSender._initializeBookkeeping(): New sequence-no successful retrieved.")
-                        that.sequenceNoData = data
-                        resolve(data)
-                    })
-                }).catch((error) => {
-                    logger.error(`MessageSender._initializeBookkeeping(): Error setting up new sequence number: ${error}`)
-                    reject(error)
                 })
-            })
-        })
+                logger.debug("MessasgeSender._initBookkeeping(): Sequence number successfully initialized.")
+                this.sequenceNoData = await this.bookkeepingDb.get("sequence-no")
+            }
+            catch (error) {
+                logger.error(`MessageSender._initBookkeeping(): Cannot initialize sequence number due to: ${error}`)
+                throw error
+            }
+        }
     }
 
     /**
@@ -115,32 +109,23 @@ class MessageSender {
     }
 
     /**
-     * Each message comes with an envelope, which contains the originator, the destination, the topic and a unique
+     * Each message comes with an envelope, which contains the originator, the topic and a unique
      * sequence number.
      * @param topic The topic of the message.
      * @param message The message itself.
      * @returns A promise, which resolves, after the sequence number is persisted successfully.
      */
-    _wrapMessage(topic, message) {
-        const that = this
-        return new Promise((resolve, reject) => {
-            const wrappedMessage = {
-                originator: this.config["originator"],
-                topic: topic,
-                message: message
-            }
-            if (that.bookkeepingDb) {
-                that._setSequenceNo(wrappedMessage, resolve, reject)
-            }
-            else {
-                that._initializeBookkeeping().then(() => {
-                    that._setSequenceNo(wrappedMessage, resolve, reject)
-                }).catch((error) => {
-                    logger.error(`MessageSender._wrapMessage(): failed to initialize bookkeeping due to: ${error}`)
-                    reject(error)
-                })
-            }
-        })
+    async _wrapMessage(topic, message) {
+        const wrappedMessage = {
+            originator: this.config["originator"],
+            topic: topic,
+            message: message
+        }
+        if (!this.sequenceNoData) {
+            await this._initBookkeeping()
+        }
+        await this._setSequenceNo(wrappedMessage)
+        return wrappedMessage
     }
 
     /**
@@ -148,21 +133,13 @@ class MessageSender {
      * returns only, using the resolve and the reject functions. In the case of success the
      * resolved function will return the wrappedMessage, with the sequence-no and a new _id set.
      * @param wrappedMessage The messages with meta data.
-     * @param resolve The function to call to resolve a promise.
-     * @param reject The function to call to reject a promise.
      */
-    _setSequenceNo(wrappedMessage, resolve, reject) {
+    async _setSequenceNo(wrappedMessage) {
         logger.debug(`MessageSender._setSequenceNo(): ${this.sequenceNoData["sequence-no"]}`)
         wrappedMessage["_id"] = `${this.config["originator"]}-${this.sequenceNoData["sequence-no"]}`
         wrappedMessage["sequence-no"] = this.sequenceNoData["sequence-no"]
         logger.debug(`MessageSender._setSequenceNo(): _id=${wrappedMessage._id} seq-no=${wrappedMessage["sequence-no"]}`)
-        this._incrementSequenceNo().then(() => {
-            logger.debug("MessageSender._setSequenceNo(): sequence number successful incremented.")
-            resolve(wrappedMessage)
-        }).catch((error) => {
-            logger.error(`MessageSender._setSequenceNo(): Not able to increment sequence number because of: ${error}`)
-            reject(error)
-        })
+        return await this._incrementSequenceNo()
     }
 
     /**
