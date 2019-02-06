@@ -31,6 +31,19 @@ test("Should fail to create a message sender with invalid configuration.", () =>
     catch (error) { /* Works as expected! */ }
 })
 
+test("Should fail to send, if the bookkeeping cannot be made.", (done) => {
+    let nbConfig = {}
+    Object.assign(nbConfig, config)
+    nbConfig["bookkeeping-url"] = "/"       // It shouldn't be allowed to write to the root for the average developer!
+    let nbSender = new MessageSender(nbConfig)
+    nbSender.send("failedBookkeeping", {name: "payload"}).then(() => {
+        fail("Unexpected success in sending message. Developer is allowed to write to root!")
+        done()
+    }).catch(() => {
+        done()
+    })
+})
+
 test("Should be possible to create a message sender.", () => {
     sender = new MessageSender(config)
     expect(sender).toBeDefined()
