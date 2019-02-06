@@ -23,6 +23,14 @@ afterAll((done) => {
 
 let sender
 
+test("Should fail to create a message sender with invalid configuration.", () => {
+    try {
+        new MessageSender({})
+        fail()
+    }
+    catch (error) { /* Works as expected! */ }
+})
+
 test("Should be possible to create a message sender.", () => {
     sender = new MessageSender(config)
     expect(sender).toBeDefined()

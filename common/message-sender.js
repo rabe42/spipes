@@ -71,7 +71,7 @@ class MessageSender {
      * Initializes the bookkeeping of the sequence number.
      */
     async _initBookkeeping() {
-        logger.debug("MessageSender._initializeBookkeeping()")
+        logger.debug("MessageSender._initBookkeeping()")
         this.bookkeepingDb = new PouchDB(this.config["database-url"] + "/bookkeeping")
 
         try {
