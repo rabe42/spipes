@@ -1,5 +1,6 @@
 const process = require("process")
 
+let databaseUrl = process.env.DB || "ms-db"
 module.exports = {
     "originator": `spipe://${process.env.HOSTNAME || "localhost"}/1`,
     "topic": process.env.TOPIC || "config",
@@ -28,7 +29,8 @@ module.exports = {
         UebRc/CWSVJ8HHpoC4KSKhZBFrzwK/QuYOc3/Gt5dbmxukvBrXWpVVWtfCu5Plap\
         P75G2+RRVC4PKaqEv1kX8x1C4tjBHkb8aO3/fcdUXjk8caycMKpXOBag+9ZsGemj\
         -----END CERTIFICATE-----"},
-    "database-url": process.env.DB || "ms-db",
+    "database-url": databaseUrl,
+    "bookkeeping-url": process.env.DB_BOOK || databaseUrl + "/bookkeeping",
     "limit": process.env.LIMIT || 10,
     "interval": process.env.INTERVAL || 500,
 }

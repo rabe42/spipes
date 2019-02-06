@@ -14,6 +14,7 @@ const configSchema = Joi.object().keys({
     "topic": Joi.string().required(),
     "host": hostSchema,
     "database-url": Joi.string().required(),
+    "bookkeeping-url": Joi.string().required(),
     "limit": Joi.number().integer().min(1).max(65000),
     "interval": Joi.number().integer().min(10),
 })
@@ -72,7 +73,7 @@ class MessageSender {
      */
     async _initBookkeeping() {
         logger.debug("MessageSender._initBookkeeping()")
-        this.bookkeepingDb = new PouchDB(this.config["database-url"] + "/bookkeeping")
+        this.bookkeepingDb = new PouchDB(this.config["bookkeeping-url"])
 
         try {
             // Check, if the bookkeeping information is already available
