@@ -159,7 +159,7 @@ class Receiver extends Server {
      */
     getDb(topicName) {
         if (!this.databases[topicName]) {
-            let databaseLocation = `${this.config["database-url"]}/${topicName}`
+            let databaseLocation = `${this.config["database-url"]}/messages/${topicName}`
             logger.debug(`Receiver.createDb(${topicName}): databaseLocation="${databaseLocation}"`)
             this.databases[topicName] = new PouchDB(databaseLocation)
         }

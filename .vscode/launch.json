@@ -7,6 +7,26 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "MS Test",
+            "program": "${workspaceFolder}/node_modules/.bin/jest",
+            "args": [
+                "${workspaceFolder}/common/message-sender.test.js"
+            ],
+
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "CB Test",
+            "program": "${workspaceFolder}/node_modules/.bin/jest",
+            "args": [
+                "${workspaceFolder}/common/circuit-breaker.test.js"
+            ],
+
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "h2post",
             "program": "${workspaceFolder}/scripts/h2post.js"
         },

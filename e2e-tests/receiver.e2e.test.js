@@ -5,6 +5,7 @@
  */
 const rimraf = require("rimraf")
 const fs = require("fs")
+const path = require("path")
 const config = require("../config/receiver")
 const Receiver = require("../server/receiver/receiver")
 const streamMock = require("../server/receiver/http2-stream-mock")
@@ -34,6 +35,7 @@ function mkdir(dirName) {
 beforeAll((done) => {
     rimraf.sync(config["database-url"])
     mkdir(config["database-url"])
+    mkdir(path.format({dir: config["database-url"], base: "messages"}))
     receiver = new Receiver(config)
     // Making sure, that the changes in the file system can be considered...
     setImmediate(done)

@@ -2,6 +2,7 @@
 const Exporter = require("./exporter")
 const config = require("../../config/exporter")
 const fs = require("fs")
+const path = require("path")
 const rimraf = require("rimraf")
 
 const logger = require("../../common/logger")
@@ -9,8 +10,9 @@ const logger = require("../../common/logger")
 config["database-url"] = "exp-test-db"
 config["export-dir"] = "exp-test-dir"
 
-beforeAll((done) => {
-    fs.mkdir(config["database-url"], done)
+beforeAll(() => {
+    fs.mkdirSync(config["database-url"])
+    fs.mkdirSync(path.format({dir: config["database-url"], base: "messages"}))
 })
 
 afterAll((done) => {

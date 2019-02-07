@@ -42,7 +42,7 @@ class Exporter extends Worker {
         logger.debug("Exporter.start(): starting processing...")
         const originators = this.config["originators"]
         for (let i = 0; i < originators.length; i++) {
-            this.processMessages(originators)
+            this.processMessages(originators[i])
         }
     }
 
@@ -136,7 +136,8 @@ class Exporter extends Worker {
         const fn = path.format({dir: this.config["export-dir"], base: message._id})
         return new Promise((resolve, reject) => {
             if (!("_id" in message)) {
-                reject(Error("Cannot export a message without the _id property!"))
+                logger.error("Exporter.errorMessage(): Cannot export a message without the _id property!")
+                reject(new Error("Cannot export a message without the _id property!"))
             }
             fs.writeFile(fn, JSON.stringify(message), (error, result) => {
                 if (error) {

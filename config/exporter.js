@@ -9,7 +9,7 @@ const configuration = {
     "limit": process.env.LIMIT || 10,
     "interval": process.env.INTERVAL || 500,
     "export-dir": process.env.EXPORT_DIR || "./export",
-    "exported-store": process.env.EXPORTED || "exported"
+    "exported-store": process.env.EXPORTED || "_exported_"
 }
 
 module.exports = configuration

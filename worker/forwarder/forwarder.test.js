@@ -3,9 +3,11 @@ const Forwarder = require("./forwarder")
 const config = require("../../config/forwarder")
 const fs = require("fs")
 const rimraf = require("rimraf")
+const path = require("path")
 
-beforeAll((done) => {
-    fs.mkdir(config["database-url"], done)
+beforeAll(() => {
+    fs.mkdirSync(config["database-url"])
+    fs.mkdirSync(path.format({dir: config["database-url"], base: "messages"}))
 })
 
 afterAll((done) => {
