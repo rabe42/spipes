@@ -16,14 +16,14 @@ class Forwarder extends Worker {
         super(config)
         validateConfiguration(config)
         this.init(this.config["database-url"], this.config.topic)
-        this.createH2ClientSession(config)
+        this._createH2ClientSession(config)
     }
 
     /**
      * Create the database, which will manage all forwared data. This database
      * must be cleaned after a retention period. This is the responsibility of another worker.
      */
-    createForwardedDb() {
+    _createForwardedDb() {
         this.forwardedDb = new PouchDB(this.calculateDatabaseLocation(this.config["database-url"], "forwarded"))
     }
 
@@ -31,7 +31,7 @@ class Forwarder extends Worker {
      * Creates the http/2 client session, which will be used to communicate
      * the messages to a receiver.
      */
-    createH2ClientSession() {
+    _createH2ClientSession() {
         const hostDefinition = this.config.host
         let that = this
         this.h2session = http2.connect(
@@ -55,7 +55,7 @@ class Forwarder extends Worker {
         // Read the configured "limit" messages for the configured topic from the database.
         this.db.allDocs({"limit": this.config.limit}).then((result) => {
             for (let i = 1; i < result.rows.length; i++) {
-                that.processMessage(result.rows[i]._id)
+                that._processMessage(result.rows[i]._id)
             }
         }).catch((error) => { 
             logger.error(`Cannot read from the topic store due to ${error}`)
@@ -68,22 +68,22 @@ class Forwarder extends Worker {
     /**
      * Reads the real content of the message and send it to an receiver, if successful.
      */
-    processMessage(messageId) {
-        logger.debug("Forwarder.processMessage(): begin")
+    _processMessage(messageId) {
+        logger.debug("Forwarder._processMessage(): begin")
         const that = this
         return this.db.get(messageId).then((message) => {
             // Forward them to the receiver.
-            return that.forwardMessage(message).then(() => {
+            return that._forwardMessage(message).then(() => {
                 // Store them to the forwarded database.
-                return that.saveMessage(message)
+                return that._saveMessage(message)
             }).then(() => {
                 // Remove them from the topic database.
-                return that.removeMessage(message)
+                return that._removeMessage(message)
             }).catch((error) => {
-                logger.error(`Forwarder.processMessage(): Wasn't able to process message due to ${error}!`)
+                logger.error(`Forwarder._processMessage(): Wasn't able to process message due to ${error}!`)
             })
         }).catch((error) => {
-            logger.error(`Forwarder.processMessage(): Wasn't able to retrieve the message due to ${error}!`)
+            logger.error(`Forwarder._processMessage(): Wasn't able to retrieve the message due to ${error}!`)
         })
     }
 
@@ -91,21 +91,21 @@ class Forwarder extends Worker {
      * Send the message to a receiver. It creates a POST request and post the message as a string.
      * @param message The complete message, including the meta information.
      */
-    forwardMessage(message) {
+    _forwardMessage(message) {
         const that = this
         const body = JSON.stringify(message)
         return new Promise((resolve, reject) => {
             const req = that.h2session.request({ ":path": that.config.topic, ":method": "POST", "content-length": body.length, "content-type": "application/json" })
             req.on("response", (headers /*, flags */) => {
                 for (const name in headers) {
-                    logger.debug(`Forwarder.forwardMessage(): response.header.${name}: ${headers[name]}`)
+                    logger.debug(`Forwarder._forwardMessage(): response.header.${name}: ${headers[name]}`)
                 }
             })
             req.setEncoding("utf8")
             let data = ""
             req.on("data", (chunk) => { data += chunk })
             req.on("end", function () {
-                logger.debug(`Forwarder.forwardMessage(): received data: ${data}`)
+                logger.debug(`Forwarder._forwardMessage(): received data: ${data}`)
                 resolve(data)
             })
             req.on("error", (error) => {
@@ -120,7 +120,7 @@ class Forwarder extends Worker {
      * Save the message for investigative purposes.
      * @param message The complete message, including the meta information.
      */
-    saveMessage(message) {
+    _saveMessage(message) {
         logger.debug(`Forwarder.moveMessage(): message=${message}.`)
         return this.forwardedDb.put(message)
     }
@@ -129,7 +129,7 @@ class Forwarder extends Worker {
      * Remove the message from the topic store.
      * @param message The complete message, including the right _rev information.
      */
-    removeMessage(message) {
+    _removeMessage(message) {
         logger.debug(`Forwarder.removeMessage(): message=${message}.`)
         return this.db.remove(message)
     }
