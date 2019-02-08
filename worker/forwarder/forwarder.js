@@ -20,6 +20,25 @@ class Forwarder extends Worker {
     }
 
     /**
+     * Triggers the processing of the database content.
+     */
+    start() {
+        logger.debug("Forwarder.start()")
+        const that = this
+        // Read the configured "limit" messages for the configured topic from the database.
+        this.db.allDocs({"limit": this.config.limit}).then((result) => {
+            for (let i = 1; i < result.rows.length; i++) {
+                that._processMessage(result.rows[i]._id)
+            }
+        }).catch((error) => { 
+            logger.error(`Cannot read from the topic store due to ${error}`)
+        })
+        setTimeout(() => {
+            that.start()
+        }, that.config.interval)
+    }
+
+    /**
      * Create the database, which will manage all forwared data. This database
      * must be cleaned after a retention period. This is the responsibility of another worker.
      */
@@ -44,25 +63,6 @@ class Forwarder extends Worker {
         this.h2session.on("close", () => {
             logger.info(`Forwarder.createH2ClientSession(${this.config.topic}): close - exiting h2 client.`)
         })
-    }
-
-    /**
-     * Triggers the processing of the database content.
-     */
-    start() {
-        logger.debug("Forwarder.start()")
-        const that = this
-        // Read the configured "limit" messages for the configured topic from the database.
-        this.db.allDocs({"limit": this.config.limit}).then((result) => {
-            for (let i = 1; i < result.rows.length; i++) {
-                that._processMessage(result.rows[i]._id)
-            }
-        }).catch((error) => { 
-            logger.error(`Cannot read from the topic store due to ${error}`)
-        })
-        setTimeout(() => {
-            that.start()
-        }, that.config.interval)
     }
 
     /**
