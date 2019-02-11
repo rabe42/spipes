@@ -121,7 +121,7 @@ class Forwarder extends Worker {
      * @param message The complete message, including the meta information.
      */
     _saveMessage(message) {
-        logger.debug(`Forwarder.moveMessage(): message=${message}.`)
+        logger.debug(`Forwarder._saveMessage(): message=${message}.`)
         return this.forwardedDb.put(message)
     }
 
@@ -130,7 +130,7 @@ class Forwarder extends Worker {
      * @param message The complete message, including the right _rev information.
      */
     _removeMessage(message) {
-        logger.debug(`Forwarder.removeMessage(): message=${message}.`)
+        logger.debug(`Forwarder._removeMessage(): message=${message}.`)
         return this.db.remove(message)
     }
 }
