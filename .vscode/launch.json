@@ -7,10 +7,10 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "MS Test",
+            "name": "FW Test",
             "program": "${workspaceFolder}/node_modules/.bin/jest",
             "args": [
-                "${workspaceFolder}/common/message-sender.test.js"
+                "${workspaceFolder}/worker/forwarder/forwarder.test.js"
             ],
 
         },

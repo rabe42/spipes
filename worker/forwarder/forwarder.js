@@ -16,23 +16,26 @@ class Forwarder extends Worker {
         super(config)
         validateConfiguration(config)
         this.init(this.config["database-url"], this.config.topic)
-        this._createH2ClientSession(config)
+        this._createForwardedDb()
+        this._createH2ClientSession()
     }
 
     /**
      * Triggers the processing of the database content.
      */
-    start() {
+    async start() {
         logger.debug("Forwarder.start()")
         const that = this
         // Read the configured "limit" messages for the configured topic from the database.
-        this.db.allDocs({"limit": this.config.limit}).then((result) => {
-            for (let i = 1; i < result.rows.length; i++) {
-                that._processMessage(result.rows[i]._id)
+        try {
+            let docs = await this.db.allDocs({"limit": this.config.limit})
+            for (let i = 1; i < docs.rows.length; i++) {
+                that._processMessage(docs.rows[i]._id)
             }
-        }).catch((error) => { 
+        } catch(error) {
             logger.error(`Cannot read from the topic store due to ${error}`)
-        })
+        }
+        // Spawn the next run after the configured interval.
         setTimeout(() => {
             that.start()
         }, that.config.interval)
@@ -43,7 +46,7 @@ class Forwarder extends Worker {
      * must be cleaned after a retention period. This is the responsibility of another worker.
      */
     _createForwardedDb() {
-        this.forwardedDb = new PouchDB(this.calculateDatabaseLocation(this.config["database-url"], "forwarded"))
+        this.forwardedDb = new PouchDB(this.config["forwarded-url"])
     }
 
     /**
@@ -68,9 +71,19 @@ class Forwarder extends Worker {
     /**
      * Reads the real content of the message and send it to an receiver, if successful.
      */
-    _processMessage(messageId) {
+    async _processMessage(messageId) {
         logger.debug("Forwarder._processMessage(): begin")
-        const that = this
+        //const that = this
+        try {
+            let message = await this.db.get(messageId)
+            await this._forwardMessage(message)
+            await this._saveMessage(message)
+            await this._removeMessage(message)    
+        }
+        catch (error) {
+            logger.error(`Forwarder._processMessage(): Cannot save message due to "${error}"`)
+        }
+        /*
         return this.db.get(messageId).then((message) => {
             // Forward them to the receiver.
             return that._forwardMessage(message).then(() => {
@@ -85,6 +98,7 @@ class Forwarder extends Worker {
         }).catch((error) => {
             logger.error(`Forwarder._processMessage(): Wasn't able to retrieve the message due to ${error}!`)
         })
+        */
     }
 
     /**

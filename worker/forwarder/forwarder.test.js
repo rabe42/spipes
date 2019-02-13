@@ -1,4 +1,4 @@
-/* global afterAll beforeAll fail test */
+/* global expect afterAll beforeAll fail test */
 const Forwarder = require("./forwarder")
 const config = require("../../config/forwarder")
 const fs = require("fs")
@@ -31,6 +31,19 @@ test("Starting the forwarder should be possible.", (done) => {
     forwarder = new Forwarder(config)
     forwarder.start()
     setTimeout(done, 1500) // This is needed to make sure, that file operations can happen in the meantime.
+})
+
+test("It should be possible to forward a message to a receiver.", () => {
+    fail("Not implemented yet!")
+})
+
+test("It should be possible to save a message for later use.", (done) => {
+    expect(forwarder.forwardedDb).toBeDefined()
+    done()
+})
+
+test("It should be possible to remove a message from the forwarding database.", () => {
+    fail("Not implemented yet!")
 })
 
 test("should close the forwarder.", (done) => {

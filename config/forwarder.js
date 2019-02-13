@@ -1,5 +1,7 @@
 /* global process */
 
+let databaseUrl = process.env.DB || "fw-db"
+
 module.exports = {
     "name": process.env.HOSTNAME || "localhost",
     "topic": process.env.TOPIC || "config",
@@ -28,7 +30,8 @@ module.exports = {
             UebRc/CWSVJ8HHpoC4KSKhZBFrzwK/QuYOc3/Gt5dbmxukvBrXWpVVWtfCu5Plap\
             P75G2+RRVC4PKaqEv1kX8x1C4tjBHkb8aO3/fcdUXjk8caycMKpXOBag+9ZsGemj\
             -----END CERTIFICATE-----"},
-    "database-url": process.env.DB || "fw-db",
+    "database-url": databaseUrl,
+    "forwarded-url": process.env.FORWARDED_DB || databaseUrl + "/forwarded",
     "limit": process.env.LIMIT || 10,
     "interval": process.env.INTERVAL || 500,
 }

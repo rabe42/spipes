@@ -12,6 +12,7 @@ const configSchema = Joi.object().keys({
     "topic": Joi.string().required(),
     "host": hostSchema,
     "database-url": Joi.string().required(),
+    "forwarded-url": Joi.string().required(),
     "limit": Joi.number().integer().min(1).max(65000),
     "interval": Joi.number().integer().min(10),
 })
