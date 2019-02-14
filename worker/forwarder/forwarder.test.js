@@ -48,8 +48,17 @@ test("It should be possible to save a message for later use.", (done) => {
     })
 })
 
-test("It should be possible to remove a message from the forwarding database.", () => {
-    fail("Not implemented yet!")
+test("It should be possible to remove a message from the forwarding database.", (done) => {
+    let testMessage = { _id: "removeMessage:1"}
+    forwarder.db.put(testMessage).then((result) => {
+        testMessage._rev = result.rev
+        forwarder._removeMessage(testMessage).then(() => {
+            done()
+        }).catch((error) => {
+            fail(error)
+            done()
+        })
+    })
 })
 
 test("should close the forwarder.", (done) => {
