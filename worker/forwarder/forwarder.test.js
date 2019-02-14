@@ -39,7 +39,13 @@ test("It should be possible to forward a message to a receiver.", () => {
 
 test("It should be possible to save a message for later use.", (done) => {
     expect(forwarder.forwardedDb).toBeDefined()
-    done()
+    let testMessage = { _id: "saveMessage:1" }
+    forwarder._saveMessage(testMessage).then(() => {
+        done()
+    }).catch((error) => {
+        fail(error)
+        done()
+    })
 })
 
 test("It should be possible to remove a message from the forwarding database.", () => {
